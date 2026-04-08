@@ -1,29 +1,31 @@
----
-description: Select and write the next bounded implementation phase
-agent: orchestrator
-subtask: true
-model: openai/gpt-5.4
----
+# /next-phase
 
-Analyze:
-- docs/product-spec.md
-- AGENTS.md
-- .opencode/backlog/candidates.yaml
-- current repo state
-- git status
+Goal: choose the next bounded implementation phase and write `.opencode/plans/current-phase.md`.
 
-If $ARGUMENTS is present, use that exact candidate id if valid.
+## Required inputs
+- `AGENTS.md`
+- `.opencode/backlog/candidates.yaml`
+- `.opencode/backlog/completed.yaml`
+- `.opencode/plans/current-phase.md`
+- explicit user scope, if provided
 
-Choose the next phase using the rubric in AGENTS.md.
+## Hard rules
+- Never re-select a candidate id already listed in `.opencode/backlog/completed.yaml`.
+- Prefer explicit user scope first.
+- Prefer a single-module, smallest-safe phase.
+- Keep the phase bounded and validation-ready.
+- Do not create a phase that silently broadens into refactor or multi-system redesign.
 
-Then OVERWRITE .opencode/plans/current-phase.md with all required sections.
+## Selection method
+1. Collect candidate ids from `.opencode/backlog/candidates.yaml`.
+2. Exclude ids in `.opencode/backlog/completed.yaml`.
+3. If the user gave explicit scope, prefer that.
+4. Otherwise apply the rubric in `AGENTS.md`.
+5. Emit one bounded phase only.
 
-Requirements:
-- set Status to pending
-- include Selected candidate id
-- include Forbidden paths
-- include Expected max files changed
-- explain why this candidate was chosen
-- explain why stronger alternatives were rejected
-- keep the scope bounded
-- do not implement code
+## Output requirements
+Write `.opencode/plans/current-phase.md` using the required format from `AGENTS.md`.
+
+## Completion handling
+- If the requested work is already listed in `.opencode/backlog/completed.yaml`, do not re-select it.
+- If the requested work is already materially complete but missing from the ledger, instruct shipper to reconcile the ledger on the next validated ship.
