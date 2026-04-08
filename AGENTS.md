@@ -9,13 +9,6 @@ Build a local-first studio for creating, training, and chatting with a user-owne
 - Keep architecture simple and runnable on a normal PC
 - Prefer local UX over cloud dependencies
 
-## Stack target
-- TypeScript
-- Next.js app in apps/web
-- SQLite + Prisma
-- Ollama first
-- pnpm workspace
-
 ## Workflow rules
 - Preferred loop: orchestrator -> builder -> validator -> builder(if fail) -> validator -> shipper
 - Keep current work in .opencode/plans/current-phase.md
@@ -25,7 +18,7 @@ Build a local-first studio for creating, training, and chatting with a user-owne
 - Default expected max files changed: 5
 - Never silently expand scope
 - Validator must not edit files
-- Shipper drafts commit message and release notes, but does not push
+- Shipper drafts commit message and next-step notes, but does not push
 
 ## Phase file requirements
 Every current phase must include:

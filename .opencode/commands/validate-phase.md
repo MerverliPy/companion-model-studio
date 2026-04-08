@@ -1,7 +1,6 @@
 ---
 description: Independently validate the current phase
 agent: validator
-subtask: true
 ---
 
 Read:

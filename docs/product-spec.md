@@ -70,7 +70,6 @@ Companion Model Studio is a local-first app that lets a user create a customizab
 - SQLite + Prisma
 - Ollama as first runtime target
 - llama.cpp as later optional runtime
-- pnpm workspace
 
 ## Quality bar
 - one bounded phase at a time

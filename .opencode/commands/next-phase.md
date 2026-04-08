@@ -10,6 +10,8 @@ Analyze:
 - current repo state
 - git status
 
+If $ARGUMENTS is present, use that exact candidate id if valid.
+
 Write the single best next bounded phase into:
 .opencode/plans/current-phase.md
 

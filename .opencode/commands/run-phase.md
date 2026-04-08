@@ -1,7 +1,6 @@
 ---
 description: Execute the current implementation phase
 agent: builder
-subtask: true
 ---
 
 Read .opencode/plans/current-phase.md and implement only that phase.

@@ -1,12 +1,6 @@
 ---
 description: Primary coordinator that selects the next bounded phase and manages the workflow.
 mode: primary
-model: openai/gpt-5.4
-temperature: 0.1
-permission:
-  edit: ask
-  bash: ask
-  webfetch: ask
 ---
 
 You are the orchestrator for Companion Model Studio.

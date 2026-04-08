@@ -21,11 +21,11 @@ candidates:
       - apps/web
       - package.json
       - pnpm-workspace.yaml
-    validation: pnpm install
+    validation: install dependencies and verify the initial workspace scaffold succeeds
     acceptance:
-      - workspace installs successfully
+      - workspace manifests exist
       - apps/web exists
-      - root scripts remain functional
+      - initial scaffold is runnable
 
   - id: studio-shell-and-routing
     module: web
@@ -34,10 +34,10 @@ candidates:
       - create the first visible product shell
       - make the app navigable
     files:
-      - apps/web/app/layout.tsx
-      - apps/web/app/page.tsx
-      - apps/web/app/(routes)
-    validation: pnpm --filter web lint || pnpm --filter web check || true
+      - apps/web/app/layout
+      - apps/web/app/page
+      - apps/web/app routes
+    validation: run the web app validation command defined by the phase
     acceptance:
       - app shows Companion Model Studio shell
       - top-level navigation exists
@@ -50,10 +50,10 @@ candidates:
       - verify local runtime health
       - enable model listing and selection
     files:
-      - apps/web/lib/ollama.ts
-      - apps/web/app/api/runtime
-      - apps/web/components/runtime-status.tsx
-    validation: pnpm --filter web lint || true
+      - apps/web runtime layer
+      - apps/web api routes
+      - runtime status UI
+    validation: run the runtime connectivity validation command defined by the phase
     acceptance:
       - runtime health endpoint exists
       - UI shows connected/disconnected state
@@ -66,10 +66,10 @@ candidates:
       - core product identity flow
       - create first companion record
     files:
-      - apps/web/app/create
-      - apps/web/components/companion-form.tsx
-      - apps/web/lib/companion-schema.ts
-    validation: pnpm --filter web lint || true
+      - apps/web create flow
+      - companion form
+      - companion validation schema
+    validation: run the companion creation validation command defined by the phase
     acceptance:
       - user can enter name, bio, template, avatar theme
       - submission persists a draft companion
@@ -82,26 +82,26 @@ candidates:
       - make companions configurable for use cases
       - expose skill-pack choices
     files:
-      - apps/web/lib/skills.ts
-      - apps/web/components/skill-pack-picker.tsx
-      - apps/web/app/create
-    validation: pnpm --filter web lint || true
+      - skill pack definitions
+      - skill picker UI
+      - create flow review step
+    validation: run the skill selection validation command defined by the phase
     acceptance:
       - user can select one or more skill packs
-      - selection is persisted with companion draft
+      - selection persists with companion draft
       - selected skills appear in review step
 
   - id: lessons-and-evals
     module: evals
     priority: 7
     drivers:
-      - convert "schooling" concept into measurable loop
+      - convert schooling concept into a measurable loop
       - create repeatable scoring
     files:
-      - packages/evals
-      - apps/web/app/lessons
-      - apps/web/lib/eval-runner.ts
-    validation: pnpm test || true
+      - eval package
+      - lessons UI
+      - eval runner
+    validation: run the lesson/eval validation command defined by the phase
     acceptance:
       - at least one lesson pack exists
       - lesson runs produce a score/result object
@@ -114,10 +114,10 @@ candidates:
       - visualize companion growth
       - reward progress
     files:
-      - apps/web/app/progress
-      - apps/web/lib/badges.ts
-      - apps/web/components/badge-cabinet.tsx
-    validation: pnpm --filter web lint || true
+      - progress view
+      - badges logic
+      - badge cabinet UI
+    validation: run the progress validation command defined by the phase
     acceptance:
       - progress view exists
       - badges unlock from deterministic rules
@@ -130,10 +130,10 @@ candidates:
       - make the product usable beyond setup
       - expose companion in live chat
     files:
-      - apps/web/app/chat
-      - apps/web/components/chat-panel.tsx
-      - apps/web/app/api/chat
-    validation: pnpm --filter web lint || true
+      - chat page
+      - chat panel
+      - chat api route
+    validation: run the chat validation command defined by the phase
     acceptance:
       - user can open a local chat session
       - selected companion context is applied

@@ -1,12 +1,6 @@
 ---
 description: Independent validation agent that checks the phase and returns PASS or FAIL without editing files.
 mode: subagent
-model: openai/gpt-5.4-mini
-temperature: 0.0
-permission:
-  edit: deny
-  bash: ask
-  webfetch: ask
 ---
 
 You are the validator.
