@@ -3,6 +3,8 @@
 import { useMemo, useState, type FormEvent } from 'react';
 
 import { CompanionCardPreview } from './companion-card-preview';
+import { CompanionReviewStep } from './companion-review-step';
+import { SkillPackPicker } from './skill-pack-picker';
 import {
   avatarThemes,
   hasCompanionErrors,
@@ -17,6 +19,7 @@ const initialValues: CompanionDraftInput = {
   shortBio: '',
   personalityTemplate: '',
   avatarTheme: '',
+  skillPacks: [],
 };
 
 type TouchedFields = Partial<Record<keyof CompanionDraftInput, boolean>>;
@@ -34,7 +37,7 @@ export function CompanionForm() {
 
   const errors = useMemo(() => validateCompanionInput(values), [values]);
 
-  function updateField(field: keyof CompanionDraftInput, value: string) {
+  function updateField(field: keyof CompanionDraftInput, value: string | string[]) {
     setValues((current) => ({ ...current, [field]: value }));
     setSaveState({ type: 'idle', message: '' });
   }
@@ -160,12 +163,21 @@ export function CompanionForm() {
             ) : null}
           </div>
 
+          <SkillPackPicker
+            selectedSkillPacks={values.skillPacks}
+            onChange={(nextSkillPacks) => updateField('skillPacks', nextSkillPacks)}
+            error={showError('skillPacks')}
+          />
+
           <button type="submit">Save draft companion</button>
           {saveState.message ? <p>{saveState.message}</p> : null}
         </div>
       </form>
 
-      <CompanionCardPreview values={values} />
+      <div style={{ display: 'grid', gap: '1.5rem' }}>
+        <CompanionCardPreview values={values} />
+        <CompanionReviewStep values={values} />
+      </div>
     </div>
   );
 }

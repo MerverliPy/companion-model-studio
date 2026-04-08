@@ -1,3 +1,5 @@
+import { skillPackValues } from './skill-packs';
+
 export const personalityTemplates = [
   {
     value: 'warm-encourager',
@@ -36,6 +38,7 @@ export type CompanionDraftInput = {
   shortBio: string;
   personalityTemplate: string;
   avatarTheme: string;
+  skillPacks: string[];
 };
 
 export type CompanionDraft = CompanionDraftInput & {
@@ -75,6 +78,13 @@ export function validateCompanionInput(input: CompanionDraftInput): CompanionFie
     errors.avatarTheme = 'Choose an avatar theme.';
   }
 
+  if (
+    input.skillPacks.length === 0 ||
+    input.skillPacks.some((skillPack) => !skillPackValues.has(skillPack))
+  ) {
+    errors.skillPacks = 'Choose at least one skill pack.';
+  }
+
   return errors;
 }
 
@@ -89,6 +99,7 @@ export function buildCompanionDraft(input: CompanionDraftInput): CompanionDraft 
     shortBio: input.shortBio.trim(),
     personalityTemplate: input.personalityTemplate,
     avatarTheme: input.avatarTheme,
+    skillPacks: input.skillPacks,
     savedAt: new Date().toISOString(),
   };
 }

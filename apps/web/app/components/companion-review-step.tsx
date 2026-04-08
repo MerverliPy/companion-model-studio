@@ -1,0 +1,47 @@
+import { avatarThemes, personalityTemplates, type CompanionDraftInput } from '../../lib/companions/companion-schema';
+import { skillPacks } from '../../lib/companions/skill-packs';
+
+type CompanionReviewStepProps = {
+  values: CompanionDraftInput;
+};
+
+export function CompanionReviewStep({ values }: CompanionReviewStepProps) {
+  const personalityTemplate = personalityTemplates.find(
+    (template) => template.value === values.personalityTemplate,
+  );
+  const avatarTheme = avatarThemes.find((theme) => theme.value === values.avatarTheme);
+  const selectedSkillPacks = skillPacks.filter((skillPack) =>
+    values.skillPacks.includes(skillPack.value),
+  );
+
+  return (
+    <section aria-labelledby="companion-review-heading">
+      <h2 id="companion-review-heading">Review</h2>
+      <div
+        style={{
+          border: '1px solid #d1d5db',
+          borderRadius: '16px',
+          padding: '1rem',
+          display: 'grid',
+          gap: '0.75rem',
+        }}
+      >
+        <div>
+          <strong>Name:</strong> {values.name.trim() || 'Not set yet'}
+        </div>
+        <div>
+          <strong>Template:</strong> {personalityTemplate?.label || 'Not selected'}
+        </div>
+        <div>
+          <strong>Theme:</strong> {avatarTheme?.label || 'Not selected'}
+        </div>
+        <div>
+          <strong>Skill packs:</strong>{' '}
+          {selectedSkillPacks.length > 0
+            ? selectedSkillPacks.map((skillPack) => skillPack.label).join(', ')
+            : 'Choose at least one skill pack'}
+        </div>
+      </div>
+    </section>
+  );
+}
