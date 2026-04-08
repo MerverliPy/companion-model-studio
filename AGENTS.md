@@ -1,11 +1,12 @@
 # Companion Model Studio
 
 ## Mission
-Build a local-first studio for creating, training, and chatting with a user-owned AI companion.
+Build a local-first studio for creating, training, and chatting with a
+user-owned AI companion.
 
 ## Product constraints
 - V1 is NOT foundation-model pretraining from scratch
-- V1 IS a local companion builder + lesson/eval platform
+- V1 IS a local companion builder plus lesson and eval platform
 - Keep architecture simple and runnable on a normal PC
 - Prefer local UX over cloud dependencies
 
@@ -50,14 +51,14 @@ Choose using this order:
 3. same_module_followup
 4. smallest_safe_scope
 5. clearest_validation
-6. lowest dependency risk
+6. lowest_dependency_risk
 
 ## Validator checks
 Validator must check:
 - acceptance criteria
 - validation command result
 - scope drift
-- file count vs expected max
+- file count versus expected max
 - forbidden tracked artifacts like node_modules and .next
 - whether unrelated refactors were introduced
 
