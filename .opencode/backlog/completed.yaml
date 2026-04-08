@@ -2,3 +2,4 @@ version: 1
 shipped_ids:
   - chat-workbench
   - local-model-connectivity
+  - studio-shell-and-routing

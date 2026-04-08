@@ -1,22 +1,23 @@
 # Current Phase
 
-Selected candidate id: local-model-connectivity
+Selected candidate id: studio-shell-and-routing
 
 Status: complete
 
 ## Goal
-Replace the placeholder local reply path in `apps/web/app/api/chat/route.ts` with a bounded Ollama chat request path that uses the existing runtime base URL configuration and returns a stable fallback error when the local runtime is unavailable.
+Add a shared studio shell in `apps/web` so the top-level Companion Model Studio navigation is available across the app, not only on the home page, while keeping route content and existing feature slices intact.
 
 ## Why this phase is next
-- Explicit user scope is `ollama-chat-request-path`, which maps most directly to the remaining local runtime integration work in the `web` module.
-- `chat-workbench` is already listed in `.opencode/backlog/completed.yaml`, so it cannot be re-selected even though this phase touches its API boundary.
-- This is the smallest safe slice that makes the shipped chat surface use the real local runtime without broadening into streaming, model management, or UI redesign.
-- Existing runtime health and model-list surfaces appear materially present already; if shipper confirms earlier connectivity work was validated but not ledgered, shipper should reconcile that separately on the next validated ship.
+- No new explicit user scope was provided, so selection falls back to the backlog rubric in `AGENTS.md`.
+- `chat-workbench` and `local-model-connectivity` are already in `.opencode/backlog/completed.yaml`, so they cannot be re-selected.
+- `foundation-workspace-bootstrap` appears materially complete in the repo already; if shipper confirms it was validated but never ledgered, shipper should reconcile that on the next validated ship rather than re-opening bootstrap work.
+- `studio-shell-and-routing` is the highest-priority remaining candidate with a clear, bounded implementation gap: the app has routes, but the studio shell navigation still lives only on the home page instead of a shared app shell.
+- This keeps scope to one module and avoids broadening into feature redesign or backlog-wide reconciliation.
 
 ## Primary files
-- `apps/web/app/api/chat/route.ts`
-- `apps/web/lib/runtime/ollama.ts`
-- `apps/web/app/components/chat-workbench.tsx`
+- `apps/web/app/layout.tsx`
+- `apps/web/app/page.tsx`
+- `apps/web/app/components/studio-shell.tsx`
 
 ## Expected max files changed
 3
@@ -28,58 +29,66 @@ Replace the placeholder local reply path in `apps/web/app/api/chat/route.ts` wit
 - `docs/**`
 - `.github/**`
 - `.opencode/backlog/**`
+- `apps/web/app/api/**`
+- `apps/web/lib/**`
 - `apps/web/app/create/**`
 - `apps/web/app/lessons/**`
 - `apps/web/app/progress/**`
-- `apps/web/app/api/runtime/**`
-- `apps/web/app/components/runtime-status.tsx`
+- `apps/web/app/chat/**`
 
 ## Risk
-The main risk is accidental scope drift from a bounded request-path change into streaming, model selection persistence, or a broader runtime refactor. A secondary risk is brittle error handling if the chat route assumes Ollama availability instead of preserving a stable failure response.
+The main risk is scope drift from a shared shell into a visual redesign of all routes. A secondary risk is accidentally moving feature-specific copy or logic while trying to centralize navigation.
 
 ## Rollback note
-If this phase must be reverted, restore `apps/web/app/api/chat/route.ts` to its current placeholder reply behavior and remove any new Ollama chat helper logic added for this phase.
+If this phase must be reverted, remove the shared shell component, restore `apps/web/app/layout.tsx` to a plain wrapper, and return the home page to owning the only navigation markup.
 
 ## In scope
-- Add a reusable Ollama chat request helper in the existing runtime layer.
-- Update the chat API route to call the Ollama helper instead of returning a deterministic placeholder reply.
-- Preserve the existing runtime base URL configuration path.
-- Return a bounded, user-safe error response when Ollama cannot satisfy the request.
-- Make only the smallest chat UI adjustment needed if the client must handle the new response or error shape.
+- Add a shared studio shell wrapper for the web app.
+- Move top-level navigation into the shared shell so it appears on app routes consistently.
+- Keep the home page content focused on the home route instead of duplicating shell responsibilities.
+- Preserve existing route paths and route-level feature content.
 
 ## Out of scope
-- Streaming responses, token-by-token UI, or markdown rendering.
-- New runtime health or model-list UI work.
-- Model picker persistence, multi-model orchestration, or prompt-template redesign.
-- Changes to create, lessons, progress, or broader navigation flows.
+- Any changes to runtime connectivity, companion creation logic, lessons, progress, or chat behavior.
+- Styling redesign beyond the minimum needed to present a coherent shared shell.
+- New routes, route renames, or feature refactors.
 - Ledger updates to `.opencode/backlog/completed.yaml`.
 
 ## Tasks
-- Add a typed Ollama chat request function to `apps/web/lib/runtime/ollama.ts` using the configured base URL.
-- Update `apps/web/app/api/chat/route.ts` to build a bounded message payload and forward it to Ollama.
-- Keep the route response shape stable for the chat workbench, adding only the smallest client adjustment if needed.
-- Ensure disconnected or non-OK Ollama responses become stable error replies instead of unhandled failures.
+- Add a reusable studio shell component with the existing top-level navigation links.
+- Update `apps/web/app/layout.tsx` to render the shared shell around route content.
+- Trim `apps/web/app/page.tsx` so it no longer owns duplicated shell navigation markup.
 
 ## Validation command
 `pnpm --filter web validate`
 
 ## Validation
-- PASS: `pnpm --filter web validate` passed on this run (`typecheck`, `next build`, and `smoke-web.sh`).
-- Checked files: `apps/web/app/api/chat/route.ts`, `apps/web/lib/runtime/ollama.ts`, `apps/web/app/components/chat-workbench.tsx`.
-- Scope and repo checks passed: 3 changed files matched the expected max of 3, no forbidden paths were changed, and no tracked generated artifacts were found under `node_modules/**` or `apps/web/.next/**`.
-- Acceptance criteria satisfied: chat now goes through the local Ollama request path, the route reuses runtime-layer base URL logic, unavailable/non-OK runtime cases return a bounded reply payload the workbench can render, and the phase stayed scoped to the chat request path.
+- PASS: `pnpm --filter web validate` succeeded; `typecheck`, `build`, and `smoke` all passed.
+- Checked files: `apps/web/app/layout.tsx`, `apps/web/app/page.tsx`, `apps/web/app/components/studio-shell.tsx`, plus route presence in `apps/web/app/create/page.tsx`, `apps/web/app/lessons/page.tsx`, `apps/web/app/progress/page.tsx`, `apps/web/app/chat/page.tsx`.
+- Acceptance criteria met: shared shell wraps the app, primary navigation is available across routes, Create/Lessons/Progress/Chat remain reachable, and the phase stayed within shell/routing scope.
+- Scope check: implementation changes stayed within the 3 planned web files; only this workflow metadata file was additionally updated.
+- Generated artifact check passed: no tracked `node_modules` or `apps/web/.next` files were found.
 
 ## Repair targets
-none
+- none
 
 ## Acceptance criteria
-- Sending a chat message goes through the local Ollama request path instead of the placeholder string generator.
-- The chat route reuses the configured Ollama base URL logic from the runtime layer.
-- If Ollama is unavailable or returns a non-OK response, the route returns a stable failure response that the workbench can handle without crashing.
-- The phase stays bounded to the chat request path and does not expand into streaming or broader runtime refactors.
+- The app shows a shared Companion Model Studio shell.
+- Top-level navigation exists across the app, not just on the home page.
+- Existing Create, Lessons, Progress, and Chat routes remain reachable through that shared navigation.
+- The phase stays bounded to shell and routing structure only.
 - `pnpm --filter web validate` passes.
 
 ## Completion summary
-- Files changed: `.opencode/plans/current-phase.md`, `apps/web/app/api/chat/route.ts`, `apps/web/lib/runtime/ollama.ts`
-- Implementation summary: added a reusable Ollama chat helper that reuses the configured base URL and selects the first available local model, then updated the chat API route to send a bounded message history plus companion context through that helper and return a stable fallback reply when the runtime is unavailable or returns a bad response.
-- Known risks: chat requests currently use the first available local model because model selection persistence is out of scope for this phase; the fallback reply includes the runtime error text, which is stable but may still vary slightly by failure mode.
+- Files changed:
+  - `.opencode/plans/current-phase.md`
+  - `apps/web/app/layout.tsx`
+  - `apps/web/app/page.tsx`
+  - `apps/web/app/components/studio-shell.tsx`
+- Implementation summary:
+  - Added a reusable `StudioShell` component with the existing top-level navigation links.
+  - Updated the root web layout to render the shared studio shell around all route content.
+  - Removed duplicated shell navigation from the home page so it keeps only route-specific content.
+- Known risks:
+  - The shared shell keeps navigation simple and does not mark the active route.
+  - Route pages that already define their own top-level landmarks remain unchanged by this phase.
