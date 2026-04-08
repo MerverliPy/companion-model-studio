@@ -16,7 +16,7 @@ Failure flow: orchestrator -> builder -> validator -> repair -> validator -> shi
 
 ## Canonical completion ledger
 - The canonical shipped/completed source of truth is `.opencode/backlog/completed.yaml`.
-- `.opencode/plans/current-phase.md` is the active working plan only. It is not the canonical historical ledger.
+- `.opencode/plans/current-phase.md` is the active working plan only.
 - A candidate id listed in `.opencode/backlog/completed.yaml` is considered complete and must not be re-selected.
 - Shipper is the only agent allowed to append ids to `.opencode/backlog/completed.yaml`.
 - Shipper may only append an id after validator PASS for the active phase.
@@ -57,9 +57,18 @@ Choose using this order:
 4. smallest_safe_scope
 5. clearest_validation
 
+## Validation defaults
+- For repo-level workflow phases, prefer `pnpm validate:repo`.
+- For web-only implementation phases, prefer `pnpm --filter web validate`.
+- Validator should reject ad hoc validation choices when a stable repo script already exists.
+
+## Governance
+- CI lives in `.github/workflows/ci.yml`.
+- `CODEOWNERS` protects workflow-critical files and product docs.
+- Recommended protected-branch settings are documented in `docs/branch-protection.md`.
+
 ## Required current-phase format
 Every generated `.opencode/plans/current-phase.md` must contain:
-- `# Current Phase`
 - `Selected candidate id:`
 - `Status:`
 - `## Goal`
