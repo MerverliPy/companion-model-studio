@@ -29,5 +29,23 @@ jobs:
       - name: Repo doctor
         run: pnpm repo:doctor
 
-      - name: Repo validation
-        run: pnpm validate:repo
+      - name: Web typecheck
+        run: pnpm --filter web typecheck
+
+      - name: Web build
+        run: pnpm --filter web build
+
+      - name: Web smoke
+        run: pnpm --filter web smoke
+
+      - name: Write bundled CI logs
+        if: always()
+        run: bash scripts/dev/ci-web-validate.sh || true
+
+      - name: Upload CI logs
+        if: always()
+        uses: actions/upload-artifact@v4
+        with:
+          name: ci-logs
+          path: ci-logs/
+          if-no-files-found: ignore
