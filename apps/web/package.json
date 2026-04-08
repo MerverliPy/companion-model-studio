@@ -5,7 +5,10 @@
   "scripts": {
     "dev": "next dev",
     "build": "next build",
-    "start": "next start"
+    "start": "next start",
+    "typecheck": "tsc --noEmit",
+    "smoke": "bash ../../scripts/dev/smoke-web.sh",
+    "validate": "pnpm typecheck && pnpm build && pnpm smoke"
   },
   "dependencies": {
     "next": "^15.2.0",

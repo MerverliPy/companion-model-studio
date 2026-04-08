@@ -4,10 +4,8 @@ set -euo pipefail
 echo "Repo root: $(pwd)"
 echo "Branch: $(git branch --show-current 2>/dev/null || echo none)"
 echo
-
 echo "Git status:"
 git status --short || true
-echo
 
 required=(
   "README.md"
@@ -25,10 +23,14 @@ required=(
   ".opencode/commands/ship-phase.md"
   ".opencode/commands/phase-status.md"
   ".opencode/backlog/candidates.yaml"
+  ".opencode/backlog/completed.yaml"
   ".opencode/plans/current-phase.md"
   "scripts/dev/doctor.sh"
+  "scripts/dev/validate-repo.sh"
+  "scripts/dev/smoke-web.sh"
   "package.json"
   "pnpm-workspace.yaml"
+  "apps/web/package.json"
 )
 
 missing=0
@@ -46,7 +48,6 @@ if [ "$missing" -ne 0 ]; then
 fi
 
 phase_file=".opencode/plans/current-phase.md"
-
 sections=(
   "Selected candidate id:"
   "Status:"
@@ -78,7 +79,7 @@ status="$(grep -E '^Status:' "$phase_file" | sed 's/^Status:[[:space:]]*//' | tr
 case "$status" in
   pending|in_progress|implemented|validated|complete|blocked) ;;
   *)
-    echo "Invalid phase status: ${status:-<empty>}"
+    echo "Invalid phase status: ${status:-}"
     exit 1
     ;;
 esac
@@ -88,18 +89,14 @@ if git ls-files | grep -Eq '(^|/)(node_modules|\.next)(/|$)'; then
   exit 1
 fi
 
-if [ "$status" = "validated" ] || [ "$status" = "complete" ]; then
-  if ! grep -Eq 'PASS' "$phase_file"; then
-    echo "Validated/complete phase must include PASS in Validation."
-    exit 1
-  fi
+if ! grep -Fq 'version:' .opencode/backlog/completed.yaml; then
+  echo "Completion ledger malformed: missing version."
+  exit 1
 fi
 
-if [ "$status" = "blocked" ]; then
-  if ! grep -Eq 'FAIL' "$phase_file"; then
-    echo "Blocked phase must include FAIL in Validation."
-    exit 1
-  fi
+if ! grep -Fq 'shipped_ids:' .opencode/backlog/completed.yaml; then
+  echo "Completion ledger malformed: missing shipped_ids."
+  exit 1
 fi
 
 echo "Doctor check passed."

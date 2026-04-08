@@ -6,6 +6,7 @@
   "scripts": {
     "repo:doctor": "bash scripts/dev/doctor.sh",
     "phase:show": "cat .opencode/plans/current-phase.md",
-    "backlog:show": "cat .opencode/backlog/candidates.yaml"
+    "backlog:show": "cat .opencode/backlog/candidates.yaml",
+    "validate:repo": "bash scripts/dev/validate-repo.sh"
   }
 }
