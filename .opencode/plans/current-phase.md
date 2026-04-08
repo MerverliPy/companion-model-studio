@@ -1,65 +1,62 @@
 # Current Phase
 
-Status: completed
+Status: pending
 
 ## Goal
-Bootstrap `foundation-workspace-bootstrap` with the smallest runnable `apps/web` package and placeholder app shell that fits the 5-file phase cap.
+Implement `studio-shell-and-routing` by turning the existing `apps/web` placeholder into the first visible Companion Model Studio shell with top-level navigation and route placeholders for Create, Lessons, Progress, and Chat.
 
 ## Why this phase is next
-- The backlog explicitly includes `foundation-workspace-bootstrap`, and the user asked to pin to that exact candidate if valid.
-- Repo state already had `pnpm-workspace.yaml` and the root `package.json`, but no `apps/web` package.
-- This is the smallest safe prerequisite before any visible product shell or feature work can begin.
+- `studio-shell-and-routing` is present in the backlog, and the user asked to use that exact candidate id if valid.
+- `foundation-workspace-bootstrap` is already completed, so the next smallest safe step is to make the app visibly navigable.
+- This phase stays within one module (`apps/web`) and prepares the product shell without pulling in runtime, persistence, or feature-specific logic.
 
 ## Primary files
-- `apps/web/package.json`
 - `apps/web/app/layout.tsx`
 - `apps/web/app/page.tsx`
-- `pnpm-lock.yaml`
+- `apps/web/app/create/page.tsx`
+- `apps/web/app/lessons/page.tsx`
+- `apps/web/app/progress/page.tsx`
 
 ## Expected max files changed
 5
 
 ## Risk
-Low to medium: initial scaffold choices can create unnecessary setup churn if the workspace layout or package naming is overcomplicated.
+Low: the main risk is accidentally expanding the shell into feature implementation or adding more routes than the bounded phase allows.
 
 ## Rollback note
-Revert the workspace manifest edits and remove the new `apps/web` scaffold if the bootstrap proves unstable or mismatched with the product direction.
+Revert the route placeholder pages and layout/page shell edits if the navigation structure needs to be redesigned before feature work proceeds.
 
 ## In scope
-- Create the smallest runnable `apps/web` scaffold compatible with the product direction.
-- Rely on the existing root workspace configuration that already recognizes `apps/*`.
-- Keep the app shell minimal and runnable without adding product features.
-- Add only the smallest files needed to validate the workspace bootstrap within the 5-file limit.
+- Update the root web shell to clearly present Companion Model Studio as the app header/home shell.
+- Add top-level navigation links for Create, Lessons, Progress, and Chat.
+- Add placeholder route pages for Create, Lessons, and Progress.
+- Keep all new pages static and placeholder-only.
 
 ## Out of scope
-- Product navigation or multi-page routing beyond a minimal landing page.
-- Runtime connectivity, companion creation, lessons/evals, progress, or chat features.
-- Database, Prisma, SQLite, or API route implementation.
-- Styling systems, generated scaffold extras, or design polish beyond the minimal placeholder shell.
+- Runtime connectivity, model health, or model selection.
+- Companion form fields, persistence, validation schemas, or database work.
+- Lessons execution, scoring, progress logic, badges, or chat functionality.
+- API routes, shared data models, styling systems, or broad visual polish.
 
 ## Tasks
-1. Create a minimal `apps/web` workspace package.
-2. Add the smallest required app-router files for a placeholder shell.
-3. Install dependencies and capture the lockfile needed to reproduce the bootstrap.
-4. Verify basic Next.js execution for the new workspace.
+1. Update `apps/web/app/layout.tsx` or `apps/web/app/page.tsx` to show the first visible studio shell.
+2. Add top-level navigation for Create, Lessons, Progress, and Chat.
+3. Create static placeholder pages for Create, Lessons, and Progress.
+4. Keep Chat represented in navigation only for this bounded phase to stay within the 5-file limit.
 
 ## Validation command
-`pnpm install && pnpm --filter "./apps/web" exec next --version`
+`pnpm --filter "./apps/web" exec next build`
 
 ## Validation
-- Passed: `pnpm install && pnpm --filter "./apps/web" exec next --version`
-- Exact result:
-  - `Scope: all 2 workspace projects`
-  - `Already up to date`
-  - `Done in 283ms`
-  - `Next.js v15.5.14`
-- Final phase file count is 5: this plan file, `apps/web/package.json`, `apps/web/app/layout.tsx`, `apps/web/app/page.tsx`, and `pnpm-lock.yaml`.
+- Passed: `pnpm --filter "./apps/web" exec next build`
+- The build completed successfully after consolidating the shell and navigation into `apps/web/app/page.tsx` and keeping Create, Lessons, and Progress as the only placeholder routes.
+- Removed regenerated `apps/web/next-env.d.ts` and `apps/web/tsconfig.json` after validation so the phase stays within the 5-file cap.
 
 ## Acceptance criteria
-- `foundation-workspace-bootstrap` is implemented with workspace manifests in place.
-- `apps/web` exists as a minimal runnable app.
-- Root workspace configuration recognizes the app without unnecessary extra package changes.
+- App shows a Companion Model Studio shell instead of only the bootstrap message.
+- Top-level navigation exists for Create, Lessons, Progress, and Chat.
+- Placeholder sections exist as pages for Create, Lessons, and Progress, with Chat present in navigation for the next bounded follow-up.
 - The validation command passes.
 
 ## Completion summary
-Completed: added the smallest bounded bootstrap that satisfies the candidate and validation command: a new `apps/web` package with minimal app-router placeholder files plus the dependency lockfile. Existing root workspace manifests already covered `apps/*`, so no extra root manifest edits were needed.
+Kept the studio shell in `apps/web/app/page.tsx`, restored `apps/web/app/layout.tsx` to its minimal bootstrap form, and left Create, Lessons, and Progress as the only new placeholder routes. Chat remains navigation-only so the phase fits the 5-file limit including this plan.
