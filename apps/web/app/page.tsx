@@ -1,5 +1,7 @@
 import Link from 'next/link';
 
+import { RuntimeStatus } from './components/runtime-status';
+
 export default function HomePage() {
   return (
     <main>
@@ -26,6 +28,7 @@ export default function HomePage() {
         </ul>
       </nav>
       <p>Use Create, Lessons, and Progress to explore the initial route placeholders. Chat stays in navigation for the next bounded phase.</p>
+      <RuntimeStatus />
     </main>
   );
 }
