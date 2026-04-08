@@ -1,0 +1,140 @@
+selection_order:
+  - explicit_user_scope
+  - highest_priority
+  - same_module_followup
+  - smallest_safe_scope
+  - clearest_validation
+
+constraints:
+  max_files_changed: 5
+  prefer_single_module: true
+  avoid_generic_tasks: true
+
+candidates:
+  - id: foundation-workspace-bootstrap
+    module: workspace
+    priority: 10
+    drivers:
+      - establish runnable local-first foundation
+      - create minimal app shell before feature work
+    files:
+      - apps/web
+      - package.json
+      - pnpm-workspace.yaml
+    validation: pnpm install
+    acceptance:
+      - workspace installs successfully
+      - apps/web exists
+      - root scripts remain functional
+
+  - id: studio-shell-and-routing
+    module: web
+    priority: 9
+    drivers:
+      - create the first visible product shell
+      - make the app navigable
+    files:
+      - apps/web/app/layout.tsx
+      - apps/web/app/page.tsx
+      - apps/web/app/(routes)
+    validation: pnpm --filter web lint || pnpm --filter web check || true
+    acceptance:
+      - app shows Companion Model Studio shell
+      - top-level navigation exists
+      - placeholder sections exist for Create, Lessons, Progress, Chat
+
+  - id: local-model-connectivity
+    module: web
+    priority: 8
+    drivers:
+      - verify local runtime health
+      - enable model listing and selection
+    files:
+      - apps/web/lib/ollama.ts
+      - apps/web/app/api/runtime
+      - apps/web/components/runtime-status.tsx
+    validation: pnpm --filter web lint || true
+    acceptance:
+      - runtime health endpoint exists
+      - UI shows connected/disconnected state
+      - local model list can be displayed
+
+  - id: companion-creation-wizard
+    module: web
+    priority: 8
+    drivers:
+      - core product identity flow
+      - create first companion record
+    files:
+      - apps/web/app/create
+      - apps/web/components/companion-form.tsx
+      - apps/web/lib/companion-schema.ts
+    validation: pnpm --filter web lint || true
+    acceptance:
+      - user can enter name, bio, template, avatar theme
+      - submission persists a draft companion
+      - validation errors display correctly
+
+  - id: skill-pack-selection
+    module: web
+    priority: 7
+    drivers:
+      - make companions configurable for use cases
+      - expose skill-pack choices
+    files:
+      - apps/web/lib/skills.ts
+      - apps/web/components/skill-pack-picker.tsx
+      - apps/web/app/create
+    validation: pnpm --filter web lint || true
+    acceptance:
+      - user can select one or more skill packs
+      - selection is persisted with companion draft
+      - selected skills appear in review step
+
+  - id: lessons-and-evals
+    module: evals
+    priority: 7
+    drivers:
+      - convert "schooling" concept into measurable loop
+      - create repeatable scoring
+    files:
+      - packages/evals
+      - apps/web/app/lessons
+      - apps/web/lib/eval-runner.ts
+    validation: pnpm test || true
+    acceptance:
+      - at least one lesson pack exists
+      - lesson runs produce a score/result object
+      - results can be stored and displayed
+
+  - id: progress-and-badges
+    module: web
+    priority: 6
+    drivers:
+      - visualize companion growth
+      - reward progress
+    files:
+      - apps/web/app/progress
+      - apps/web/lib/badges.ts
+      - apps/web/components/badge-cabinet.tsx
+    validation: pnpm --filter web lint || true
+    acceptance:
+      - progress view exists
+      - badges unlock from deterministic rules
+      - recent achievement list is visible
+
+  - id: chat-workbench
+    module: web
+    priority: 6
+    drivers:
+      - make the product usable beyond setup
+      - expose companion in live chat
+    files:
+      - apps/web/app/chat
+      - apps/web/components/chat-panel.tsx
+      - apps/web/app/api/chat
+    validation: pnpm --filter web lint || true
+    acceptance:
+      - user can open a local chat session
+      - selected companion context is applied
+      - messages render in a stable chat UI

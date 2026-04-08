@@ -1,0 +1,11 @@
+{
+  "name": "companion-model-studio",
+  "private": true,
+  "version": "0.1.0",
+  "packageManager": "pnpm@10",
+  "scripts": {
+    "repo:doctor": "bash scripts/dev/doctor.sh",
+    "phase:show": "cat .opencode/plans/current-phase.md",
+    "backlog:show": "cat .opencode/backlog/candidates.yaml"
+  }
+}
