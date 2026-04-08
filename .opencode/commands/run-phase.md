@@ -1,6 +1,8 @@
 ---
 description: Implement the current phase only
 agent: builder
+subtask: true
+model: openai/gpt-5.4
 ---
 
 Read .opencode/plans/current-phase.md and implement only that phase.

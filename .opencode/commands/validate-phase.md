@@ -1,6 +1,8 @@
 ---
 description: Validate the current phase and update workflow status
 agent: validator
+subtask: true
+model: openai/gpt-5.4-mini
 ---
 
 Read:

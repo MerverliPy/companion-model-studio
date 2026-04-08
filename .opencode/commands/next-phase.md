@@ -1,6 +1,8 @@
 ---
 description: Select and write the next bounded implementation phase
 agent: orchestrator
+subtask: true
+model: openai/gpt-5.4
 ---
 
 Analyze:

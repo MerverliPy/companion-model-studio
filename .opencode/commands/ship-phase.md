@@ -1,6 +1,8 @@
 ---
 description: Draft commit message and shipping summary for a validated phase
 agent: shipper
+subtask: true
+model: openai/gpt-5.4-mini
 ---
 
 Read:

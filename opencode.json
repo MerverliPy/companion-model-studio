@@ -5,5 +5,19 @@
     "edit": "ask",
     "bash": "ask"
   },
+  "compaction": {
+    "auto": true,
+    "prune": true,
+    "reserved": 12000
+  },
+  "watcher": {
+    "ignore": [
+      "node_modules/**",
+      ".next/**",
+      "dist/**",
+      "coverage/**",
+      ".git/**"
+    ]
+  },
   "instructions": ["AGENTS.md"]
 }

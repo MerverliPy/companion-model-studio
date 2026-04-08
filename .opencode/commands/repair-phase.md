@@ -1,6 +1,8 @@
 ---
 description: Repair only the exact failures from the latest validator result
 agent: builder
+subtask: true
+model: openai/gpt-5.4
 ---
 
 Read:
