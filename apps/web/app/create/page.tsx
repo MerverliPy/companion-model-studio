@@ -1,8 +1,15 @@
+import { CompanionForm } from '../components/companion-form';
+
 export default function CreatePage() {
   return (
     <main>
-      <h2>Create</h2>
-      <p>Set up your companion profile and first studio workflow in a later phase.</p>
+      <p>Companion creation</p>
+      <h1>Create your first companion draft.</h1>
+      <p>
+        Capture the core profile now: name, short bio, personality template, and avatar
+        theme.
+      </p>
+      <CompanionForm />
     </main>
   );
 }

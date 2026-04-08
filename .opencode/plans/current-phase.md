@@ -1,30 +1,31 @@
 # Current Phase
 
-Selected candidate id: local-model-connectivity
+Selected candidate id: companion-creation-wizard
 
 Status: complete
 
 ## Goal
-Add a minimal Ollama connectivity slice for the existing web shell: a runtime health check, model listing endpoint, and a bounded UI that shows connected/disconnected state and allows temporary model selection.
+Add the first bounded companion creation wizard in `apps/web` so a user can enter a companion name, short bio, personality template, and avatar theme, see inline validation errors, and save a draft companion without adding skill packs, lessons, badges, chat, or unrelated persistence work.
 
 ## Why this phase is next
-- Chosen by explicit_user_scope: the backlog contains `local-model-connectivity`, and the user required using that exact candidate id when valid.
-- It is valid against the current repo state: the workspace bootstrap and initial studio shell already exist, so runtime connectivity is now a sensible follow-up on the active `apps/web` module.
-- It directly advances a core V1 requirement from `docs/product-spec.md`: connect to a local model runtime, surface runtime status, list models, and support model selection.
-- It remains bounded to a single module and can fit the default file budget.
+- Chosen by explicit_user_scope: the backlog contains the exact candidate id `companion-creation-wizard`, and the user explicitly required using that exact id if valid.
+- It is valid against the current repo state: the workspace bootstrap and studio shell already exist, `local-model-connectivity` is already complete in the current phase file, and `apps/web/app/create/page.tsx` is still a placeholder that directly matches this candidate's unfinished surface area.
+- It matches the product spec's first core job to be done and V1 feature set for companion creation: name, short bio, personality template, and avatar theme.
+- It can be kept bounded to a single module with the default file budget by limiting the phase to the wizard UI, validation schema, preview, and only the minimum draft-saving path required by the candidate acceptance criteria.
 
 Stronger alternatives rejected:
-- `foundation-workspace-bootstrap` was rejected even though it has higher priority because the repo already has `package.json`, `pnpm-workspace.yaml`, `apps/web`, and a runnable Next app shell; selecting it would repeat completed groundwork instead of moving the product forward.
-- `studio-shell-and-routing` was rejected even though it has higher priority because the current app already exposes the main shell and placeholder routes for Create, Lessons, Progress, and Chat; it appears materially satisfied by the current repo state.
-- `companion-creation-wizard` was rejected because explicit user scope takes precedence, and runtime connectivity is the more direct fit for the local-first product promise before persistence-heavy creation flow work.
-- Lower-priority candidates were rejected because they either depend on more application structure or broaden scope beyond the smallest safe next step.
+- `foundation-workspace-bootstrap` was rejected because it has already been materially satisfied by the current repo structure (`package.json`, `pnpm-workspace.yaml`, `apps/web`) and would repeat completed groundwork.
+- `studio-shell-and-routing` was rejected because the visible shell and top-level routes already exist, so it is no longer the smallest safe next step.
+- `local-model-connectivity` was rejected because it is already completed in the current plan file; selecting it again would violate the one-bounded-phase workflow.
+- `skill-pack-selection` was rejected even though it is a nearby follow-up because the user explicitly said to keep this phase strictly limited to the companion creation wizard only and not add skill pack selection.
+- `lessons-and-evals`, `progress-and-badges`, and `chat-workbench` were rejected because they are lower priority, depend on having a created companion flow first, and would broaden scope beyond the clearest bounded next phase.
 
 ## Primary files
-- `apps/web/app/page.tsx`
-- `apps/web/app/api/runtime/health/route.ts`
-- `apps/web/app/api/runtime/models/route.ts`
-- `apps/web/lib/runtime/ollama.ts`
-- `apps/web/app/components/runtime-status.tsx`
+- `apps/web/app/create/page.tsx`
+- `apps/web/app/components/companion-form.tsx`
+- `apps/web/app/components/companion-card-preview.tsx`
+- `apps/web/lib/companions/companion-schema.ts`
+- `apps/web/lib/companions/draft-store.ts`
 
 ## Expected max files changed
 5
@@ -35,38 +36,39 @@ Stronger alternatives rejected:
 - `packages/**`
 - `docs/**`
 - `.opencode/backlog/**`
-- `apps/web/app/create/**`
+- `apps/web/app/api/runtime/**`
 - `apps/web/app/lessons/**`
 - `apps/web/app/progress/**`
 - `apps/web/app/chat/**`
+- `apps/web/app/components/runtime-status.tsx`
+- `apps/web/app/components/skill-*`
 
 ## Risk
-The main risk is over-expanding from a small connectivity slice into broader runtime management, persistence, or chat integration. A secondary risk is coupling the phase to a live local runtime during implementation instead of keeping disconnected behavior explicit and graceful.
+The main risk is scope drift from a small creation wizard into a broader onboarding flow, especially by adding skill selection, multi-step review screens, or a larger persistence layer than is required to save one draft companion. A secondary risk is introducing persistence machinery that exceeds the default file budget.
 
 ## Rollback note
-If this phase fails validation or needs to be reverted, remove the runtime helper, the two API routes, and the homepage connectivity UI, returning the app to the current shell-only state.
+If this phase fails validation or must be reverted, remove the wizard-specific form, preview, schema, and draft-store changes and return `apps/web/app/create/page.tsx` to its current placeholder state.
 
 ## In scope
-- Add a minimal Ollama runtime helper in `apps/web/lib/runtime/ollama.ts`.
-- Add a GET health endpoint for runtime status.
-- Add a GET models endpoint for listing locally available models.
-- Add a small web UI in the existing shell that shows connected/disconnected state.
-- Add a temporary, non-persistent model selection control backed by the fetched model list.
-- Handle disconnected runtime responses without crashing the page.
+- Replace the placeholder create page with a bounded companion creation wizard surface.
+- Collect exactly the core V1 creation fields for this phase: name, short bio, personality template, and avatar theme.
+- Add companion form validation and render inline validation errors.
+- Show a companion card preview derived from entered values.
+- Save a draft companion using only the minimum persistence needed to satisfy this candidate.
 
 ## Out of scope
-- Persisting the selected model to a database or settings store.
-- Companion creation, lessons/evals, progress, or chat behavior.
-- Support for runtimes other than Ollama.
-- Background polling, retries, streaming, or advanced connection diagnostics.
-- Refactoring unrelated shell or route structure.
+- Skill pack selection, review-step expansion, or any create-flow features beyond the core wizard fields.
+- Lessons, evals, badges, progress, chat, runtime connectivity, or unrelated navigation work.
+- Broader persistence infrastructure beyond what is necessary to save a single draft companion.
+- Companion list management, editing existing companions, deletion flows, or session history.
+- Unrelated refactors to shared layout, routing, or runtime code.
 
 ## Tasks
-- Create a thin Ollama client wrapper with bounded methods for health and model listing.
-- Implement `/api/runtime/health` route.
-- Implement `/api/runtime/models` route.
-- Add a focused runtime status/model picker UI to the existing homepage shell.
-- Ensure disconnected runtime cases render a clear non-fatal state.
+- Define a bounded companion input schema for the four wizard fields.
+- Build a focused companion form UI on the existing create page.
+- Add inline validation error handling for invalid or missing inputs.
+- Add a companion card preview component tied to the wizard inputs.
+- Add the minimum draft companion save path needed for successful submission.
 
 ## Validation command
 `pnpm --filter web build`
@@ -74,35 +76,34 @@ If this phase fails validation or needs to be reverted, remove the runtime helpe
 ## Validation
 PASS
 
-- Acceptance criteria met: `apps/web/app/api/runtime/health/route.ts` returns the bounded Ollama health shape, `apps/web/app/api/runtime/models/route.ts` returns the model list shape, and `apps/web/app/components/runtime-status.tsx` renders connected/disconnected status plus temporary in-page model selection.
+- Acceptance criteria met: the create flow collects name, short bio, personality template, and avatar theme; `companion-form.tsx` shows inline validation errors; `companion-card-preview.tsx` renders a live preview; and `draft-store.ts` saves a draft companion to localStorage without adding skill packs, lessons, badges, chat, or broader persistence work.
 - Validation command passed: `pnpm --filter web build` completed successfully on 2026-04-08.
-- Scope stayed bounded to the planned runtime connectivity slice in `apps/web`; no unrelated route/module refactors were introduced.
+- Scope stayed bounded to the companion creation wizard files in `apps/web`; no unrelated refactors or out-of-scope feature additions were introduced.
 - File-count check passed for implementation scope: 5 product files changed, matching the expected max of 5. The phase metadata file changed separately as required by workflow.
-- Forbidden tracked artifacts check passed: no tracked `node_modules/**` or `apps/web/.next/**` files were found. Build produced an untracked `apps/web/tsconfig.tsbuildinfo`, but it is not tracked.
+- Forbidden tracked artifacts check passed: no tracked `node_modules/**` or `apps/web/.next/**` files were found.
 
 ## Repair targets
 none
 
 ## Acceptance criteria
-- Runtime health endpoint exists and returns a deterministic connected/disconnected shape.
-- UI shows connected/disconnected state without requiring unrelated routes or features.
-- Local model list can be displayed from the runtime models endpoint.
-- User can choose a model from the displayed list for the current page session.
-- Phase stays within the listed primary files or a clearly equivalent set, without unrelated refactors.
+- User can enter a companion name, short bio, personality template, and avatar theme on the create flow.
+- Submission saves a draft companion without requiring skill packs, lessons, badges, chat, or unrelated persistence work.
+- Validation errors display correctly for invalid or missing inputs.
+- The phase stays bounded to the companion creation wizard and does not introduce unrelated refactors.
 - Validation command passes.
 
 ## Completion summary
 - Files changed:
   - `.opencode/plans/current-phase.md`
-  - `apps/web/app/page.tsx`
-  - `apps/web/app/api/runtime/health/route.ts`
-  - `apps/web/app/api/runtime/models/route.ts`
-  - `apps/web/lib/runtime/ollama.ts`
-  - `apps/web/app/components/runtime-status.tsx`
+  - `apps/web/app/create/page.tsx`
+  - `apps/web/app/components/companion-form.tsx`
+  - `apps/web/app/components/companion-card-preview.tsx`
+  - `apps/web/lib/companions/companion-schema.ts`
+  - `apps/web/lib/companions/draft-store.ts`
 - Implementation summary:
-  - Added a thin Ollama runtime helper with bounded health and model-list methods plus deterministic disconnected responses.
-  - Added GET runtime health and models API routes for the web app.
-  - Added a homepage runtime status panel that shows connected/disconnected state, lists local models, and supports temporary in-page model selection.
+  - Replaced the placeholder create page with a bounded companion creation wizard.
+  - Added schema-driven validation for name, short bio, personality template, and avatar theme with inline field errors.
+  - Added a live companion card preview and a minimal localStorage-backed draft save path for successful submissions.
 - Known risks:
-  - Runtime availability still depends on a local Ollama instance responding at the configured base URL.
-  - The model picker is intentionally session-local and does not persist across refreshes.
+  - Draft persistence is browser-local only and does not restore previously saved values into the form yet.
+  - Inline layout uses component-local styles, so future design-system work may restyle this surface.
