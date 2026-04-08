@@ -166,7 +166,7 @@ export function CompanionForm() {
           <SkillPackPicker
             selectedSkillPacks={values.skillPacks}
             onChange={(nextSkillPacks) => updateField('skillPacks', nextSkillPacks)}
-            error={showError('skillPacks')}
+            error={showError('skillPacks') || undefined}
           />
 
           <button type="submit">Save draft companion</button>
