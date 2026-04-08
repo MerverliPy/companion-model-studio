@@ -2,7 +2,7 @@
 
 Selected candidate id: chat-workbench
 
-Status: pending
+Status: complete
 
 ## Goal
 Add the first bounded chat-workbench slice in `apps/web` so a user can open a local chat session, see selected companion context in the chat surface, and render a stable message list using only the minimum local browser state needed for this phase without expanding into richer history, lessons, or runtime refactors.
@@ -67,9 +67,14 @@ If this phase fails validation or must be reverted, remove the chat page, chat w
 `pnpm --filter web build`
 
 ## Validation
-NOT RUN
+PASS
 
-- Pending implementation.
+- Command: `pnpm --filter web build`
+- Build completed successfully.
+- Acceptance criteria met: `/chat` opens a local chat session, saved companion draft context is shown in the chat surface, and messages render in the workbench UI.
+- Scope check: 5 changed files, matching the expected max of 5.
+- Forbidden-path check: no files changed under forbidden paths.
+- Generated-artifact check: no tracked `node_modules` or `.next` artifacts.
 
 ## Repair targets
 none
@@ -82,4 +87,16 @@ none
 - Validation command passes.
 
 ## Completion summary
-- Not started.
+- Files changed:
+  - `.opencode/plans/current-phase.md`
+  - `apps/web/app/chat/page.tsx`
+  - `apps/web/app/components/chat-workbench.tsx`
+  - `apps/web/app/api/chat/route.ts`
+  - `apps/web/lib/chat/session-store.ts`
+- Implementation summary:
+  - Added the first `/chat` page and a bounded local chat workbench in `apps/web`.
+  - Applied saved companion draft context in the chat surface header and seeded a stable local message session from browser storage.
+  - Added a minimal chat API route that returns a companion-aware local reply without expanding into runtime orchestration or streaming.
+- Known risks:
+  - The chat reply is intentionally deterministic and placeholder-like, so it does not reflect real model behavior yet.
+  - The local session is stored as a single browser session snapshot, so draft changes do not retroactively rewrite existing message history.

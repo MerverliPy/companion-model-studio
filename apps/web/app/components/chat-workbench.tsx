@@ -1,0 +1,222 @@
+'use client';
+
+import { useEffect, useMemo, useState, type FormEvent } from 'react';
+
+import {
+  avatarThemes,
+  personalityTemplates,
+  type CompanionDraft,
+} from '../../lib/companions/companion-schema';
+import { loadCompanionDraft } from '../../lib/companions/draft-store';
+import { skillPacks } from '../../lib/companions/skill-packs';
+import {
+  createAssistantMessage,
+  createChatSession,
+  createUserMessage,
+  loadChatSession,
+  saveChatSession,
+  type ChatMessage,
+  type ChatSession,
+} from '../../lib/chat/session-store';
+
+type ComposerState = 'idle' | 'sending' | 'error';
+
+function getCompanionName(companion: CompanionDraft | null) {
+  return companion?.name || 'Your companion';
+}
+
+function createWelcomeMessage(companion: CompanionDraft | null) {
+  const name = getCompanionName(companion);
+  const prompt = companion?.shortBio || 'Save a draft companion to apply more context here.';
+
+  return createAssistantMessage(
+    `Hi, I'm ${name}. I'm ready for a local chat session. ${prompt}`,
+  );
+}
+
+export function ChatWorkbench() {
+  const [companion, setCompanion] = useState<CompanionDraft | null>(null);
+  const [session, setSession] = useState<ChatSession | null>(null);
+  const [draftMessage, setDraftMessage] = useState('');
+  const [composerState, setComposerState] = useState<ComposerState>('idle');
+
+  useEffect(() => {
+    const savedCompanion = loadCompanionDraft();
+    const savedSession = loadChatSession();
+    const nextSession =
+      savedSession || createChatSession([createWelcomeMessage(savedCompanion)]);
+
+    setCompanion(savedCompanion);
+    setSession(nextSession);
+    saveChatSession(nextSession);
+  }, []);
+
+  const companionSummary = useMemo(() => {
+    const template = personalityTemplates.find(
+      (option) => option.value === companion?.personalityTemplate,
+    );
+    const avatarTheme = avatarThemes.find((option) => option.value === companion?.avatarTheme);
+    const selectedSkillPacks = skillPacks.filter((pack) => companion?.skillPacks.includes(pack.value));
+
+    return {
+      template: template?.label || 'Not selected',
+      avatarTheme: avatarTheme?.label || 'Not selected',
+      skillPacks:
+        selectedSkillPacks.length > 0
+          ? selectedSkillPacks.map((pack) => pack.label).join(', ')
+          : 'No skill packs selected yet',
+    };
+  }, [companion]);
+
+  async function handleSubmit(event: FormEvent<HTMLFormElement>) {
+    event.preventDefault();
+
+    const content = draftMessage.trim();
+
+    if (!content || !session || composerState === 'sending') {
+      return;
+    }
+
+    const userMessage = createUserMessage(content);
+    const optimisticSession = {
+      ...session,
+      messages: [...session.messages, userMessage],
+      updatedAt: new Date().toISOString(),
+    };
+
+    setSession(optimisticSession);
+    setDraftMessage('');
+    setComposerState('sending');
+
+    try {
+      const response = await fetch('/api/chat', {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+        },
+        body: JSON.stringify({
+          companion,
+          messages: optimisticSession.messages,
+        }),
+      });
+
+      if (!response.ok) {
+        throw new Error('Request failed');
+      }
+
+      const result = (await response.json()) as { reply: string };
+      const nextSession = {
+        ...optimisticSession,
+        messages: [...optimisticSession.messages, createAssistantMessage(result.reply)],
+        updatedAt: new Date().toISOString(),
+      };
+
+      setSession(nextSession);
+      saveChatSession(nextSession);
+      setComposerState('idle');
+    } catch {
+      const recoveredSession = {
+        ...session,
+        messages: [
+          ...optimisticSession.messages,
+          createAssistantMessage('I could not send that message just now. Please try again.'),
+        ],
+        updatedAt: new Date().toISOString(),
+      };
+
+      setSession(recoveredSession);
+      saveChatSession(recoveredSession);
+      setComposerState('error');
+    }
+  }
+
+  return (
+    <section
+      aria-label="Chat workbench"
+      style={{
+        display: 'grid',
+        gap: '1rem',
+        marginTop: '1.5rem',
+      }}
+    >
+      <div
+        style={{
+          border: '1px solid #d1d5db',
+          borderRadius: '16px',
+          padding: '1rem',
+          display: 'grid',
+          gap: '0.75rem',
+        }}
+      >
+        <div>
+          <strong>Companion:</strong> {getCompanionName(companion)}
+        </div>
+        <div>
+          <strong>Bio:</strong> {companion?.shortBio || 'Save a companion draft to apply profile context.'}
+        </div>
+        <div>
+          <strong>Template:</strong> {companionSummary.template}
+        </div>
+        <div>
+          <strong>Theme:</strong> {companionSummary.avatarTheme}
+        </div>
+        <div>
+          <strong>Skill packs:</strong> {companionSummary.skillPacks}
+        </div>
+      </div>
+
+      <div
+        style={{
+          border: '1px solid #d1d5db',
+          borderRadius: '16px',
+          padding: '1rem',
+          display: 'grid',
+          gap: '1rem',
+        }}
+      >
+        <div
+          aria-live="polite"
+          style={{
+            display: 'grid',
+            gap: '0.75rem',
+            minHeight: '18rem',
+          }}
+        >
+          {session?.messages.map((message: ChatMessage) => (
+            <article
+              key={message.id}
+              style={{
+                border: '1px solid #e5e7eb',
+                borderRadius: '12px',
+                padding: '0.75rem',
+                background: message.role === 'assistant' ? '#f9fafb' : '#eff6ff',
+              }}
+            >
+              <p style={{ margin: 0 }}>
+                <strong>{message.role === 'assistant' ? getCompanionName(companion) : 'You'}</strong>
+              </p>
+              <p style={{ marginBottom: 0 }}>{message.content}</p>
+            </article>
+          ))}
+        </div>
+
+        <form onSubmit={handleSubmit} style={{ display: 'grid', gap: '0.75rem' }}>
+          <label htmlFor="chat-message">Message</label>
+          <textarea
+            id="chat-message"
+            name="message"
+            rows={4}
+            value={draftMessage}
+            onChange={(event) => setDraftMessage(event.target.value)}
+            placeholder="Ask your companion for a next step or reflection prompt."
+            disabled={!session || composerState === 'sending'}
+          />
+          <button type="submit" disabled={!draftMessage.trim() || composerState === 'sending'}>
+            {composerState === 'sending' ? 'Sending…' : 'Send message'}
+          </button>
+          {composerState === 'error' ? <p>Last send failed, but your local session was kept.</p> : null}
+        </form>
+      </div>
+    </section>
+  );
+}
