@@ -5,15 +5,22 @@ agent: shipper
 
 Read:
 - .opencode/plans/current-phase.md
-- latest validator result
 - git diff
+- git status --short
 
-If the latest validator result is not PASS, do not ship the phase.
-Instead return:
+Gate rules:
+- if Status is not validated, return NOT READY
+- if Validation does not contain PASS, return NOT READY
+- if tracked generated artifacts exist, return NOT READY
+
+If NOT READY, return:
 - NOT READY
-- blocking validation failures
+- blocking issues
 
-If the latest validator result is PASS, return:
-1. commit message
-2. short shipping summary
-3. recommended next candidate id
+If READY:
+- set Status to complete
+- return:
+  1. conventional commit message
+  2. short shipping summary
+  3. recommended next candidate id
+  4. safe to commit: yes

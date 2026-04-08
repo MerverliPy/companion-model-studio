@@ -12,13 +12,16 @@ Analyze:
 
 If $ARGUMENTS is present, use that exact candidate id if valid.
 
-Write the single best next bounded phase into:
-.opencode/plans/current-phase.md
+Choose the next phase using the rubric in AGENTS.md.
+
+Then OVERWRITE .opencode/plans/current-phase.md with all required sections.
 
 Requirements:
-- choose the smallest safe scope
-- prefer one module
-- expected max files changed <= 5
-- include all required phase sections
+- set Status to pending
+- include Selected candidate id
+- include Forbidden paths
+- include Expected max files changed
+- explain why this candidate was chosen
+- explain why stronger alternatives were rejected
+- keep the scope bounded
 - do not implement code
-- if a completed phase is already present, overwrite it

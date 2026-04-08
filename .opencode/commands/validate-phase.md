@@ -1,5 +1,5 @@
 ---
-description: Independently validate the current phase
+description: Validate the current phase and update workflow status
 agent: validator
 ---
 
@@ -10,11 +10,25 @@ Read:
 
 Run the exact validation command from the phase.
 
+Checks required:
+- command result
+- acceptance criteria
+- scope drift
+- expected max files changed
+- forbidden paths
+- tracked generated artifacts
+
+Then update only .opencode/plans/current-phase.md:
+- PASS -> Status: validated
+- FAIL -> Status: blocked
+
+Also update:
+- Validation
+- Repair targets
+
 Return:
 - PASS or FAIL
 - exact reasons
 - missing acceptance criteria
 - specific files checked
 - command output summary
-
-Do not edit files.
