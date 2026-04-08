@@ -2,7 +2,7 @@
   "name": "companion-model-studio",
   "private": true,
   "version": "0.1.0",
-  "packageManager": "pnpm@10",
+  "packageManager": "pnpm@10.0.0",
   "scripts": {
     "repo:doctor": "bash scripts/dev/doctor.sh",
     "phase:show": "cat .opencode/plans/current-phase.md",
