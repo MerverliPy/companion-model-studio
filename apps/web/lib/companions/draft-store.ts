@@ -9,3 +9,17 @@ export function saveCompanionDraft(input: CompanionDraftInput): CompanionDraft {
 
   return draft;
 }
+
+export function loadCompanionDraft(): CompanionDraft | null {
+  const stored = window.localStorage.getItem(storageKey);
+
+  if (!stored) {
+    return null;
+  }
+
+  try {
+    return JSON.parse(stored) as CompanionDraft;
+  } catch {
+    return null;
+  }
+}

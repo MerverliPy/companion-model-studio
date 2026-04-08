@@ -1,8 +1,15 @@
+import { LessonAttemptPanel } from '../components/lesson-attempt-panel';
+
 export default function LessonsPage() {
   return (
     <main>
-      <h2>Lessons</h2>
-      <p>Lesson authoring and evaluation flows will land in a focused follow-up phase.</p>
+      <p>Lessons</p>
+      <h1>Run the first built-in lesson eval.</h1>
+      <p>
+        This first slice checks whether a saved companion draft is ready for a simple
+        reflection lesson and stores the latest result in local browser storage.
+      </p>
+      <LessonAttemptPanel />
     </main>
   );
 }
