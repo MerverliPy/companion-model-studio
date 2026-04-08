@@ -1,28 +1,27 @@
 # Current Phase
 
-Selected candidate id: progress-and-badges
+Selected candidate id: chat-workbench
 
 Status: pending
 
 ## Goal
-Add the first bounded progress-and-badges slice in `apps/web` so the progress page can read stored lesson results, compute deterministic badge unlocks from those results, and show a minimal recent-achievements view without adding broader analytics, chat features, or a multi-page progress system.
+Add the first bounded chat-workbench slice in `apps/web` so a user can open a local chat session, see selected companion context in the chat surface, and render a stable message list using only the minimum local browser state needed for this phase without expanding into richer history, lessons, or runtime refactors.
 
 ## Why this phase is next
-- Chosen by highest_priority among the remaining unfinished candidates: `progress-and-badges` is now the highest-priority valid backlog item after `lessons-and-evals` completed.
-- It is the clearest follow-up because the product spec places measurable progress after lessons/evals, and the current repo now has stored lesson result data to visualize.
-- It beat `chat-workbench` because chat is the same priority but depends less clearly on progress data, while this phase directly builds on the newly completed lesson result loop.
-- This plan keeps the candidate safely bounded to a first progress slice: one progress page, one deterministic badge computation module, and one recent-achievements surface.
+- Chosen by highest_priority among the remaining unfinished candidates: `chat-workbench` is now the only meaningful unfinished product candidate left in the backlog.
+- It follows the product spec sequence after creation, skill packs, lessons/evals, and progress by making the configured companion usable in a local chat flow.
+- It beat no stronger alternatives because the earlier candidates are already materially complete and should not be re-selected.
+- This plan keeps the phase safely bounded to a first chat slice: one chat page, one stable chat panel, and the minimum local session state needed to apply saved companion context.
 
 Stronger alternatives rejected:
-- `chat-workbench` was rejected because although it is still valid, it is not as direct a follow-up to the new stored lesson results and would open a broader interaction surface.
-- `foundation-workspace-bootstrap`, `studio-shell-and-routing`, `local-model-connectivity`, `companion-creation-wizard`, `skill-pack-selection`, and `lessons-and-evals` were rejected because they are already materially complete and should not be re-selected.
+- `foundation-workspace-bootstrap`, `studio-shell-and-routing`, `local-model-connectivity`, `companion-creation-wizard`, `skill-pack-selection`, `lessons-and-evals`, and `progress-and-badges` were rejected because they are already materially complete and should not be re-selected.
 
 ## Primary files
-- `apps/web/app/progress/page.tsx`
-- `apps/web/app/components/progress-summary.tsx`
-- `apps/web/app/components/badge-cabinet.tsx`
-- `apps/web/lib/progress/badges.ts`
-- `apps/web/lib/progress/progress-summary.ts`
+- `apps/web/app/chat/page.tsx`
+- `apps/web/app/components/chat-workbench.tsx`
+- `apps/web/app/components/companion-chat-header.tsx`
+- `apps/web/app/api/chat/route.ts`
+- `apps/web/lib/chat/session-store.ts`
 
 ## Expected max files changed
 5
@@ -33,36 +32,36 @@ Stronger alternatives rejected:
 - `packages/**`
 - `docs/**`
 - `.opencode/backlog/**`
-- `apps/web/app/chat/**`
 - `apps/web/app/create/**`
 - `apps/web/app/lessons/**`
+- `apps/web/app/progress/**`
 - `apps/web/app/api/runtime/**`
 - `apps/web/app/components/runtime-status.tsx`
 - `apps/web/lib/runtime/**`
 
 ## Risk
-The main risk is scope drift from a minimal progress slice into a full dashboard or analytics system. A secondary risk is mixing future badge progression rules into this phase instead of keeping the unlock logic deterministic and derived only from current lesson result data.
+The main risk is scope drift from a first local chat slice into a full assistant stack with streaming, model orchestration, or durable multi-session history. A secondary risk is over-coupling the chat flow to runtime connectivity instead of keeping this phase focused on stable local UI, applied companion context, and minimal local session behavior.
 
 ## Rollback note
-If this phase fails validation or must be reverted, remove the progress summary, badge cabinet, and deterministic progress logic changes, then restore the progress page to its current placeholder state.
+If this phase fails validation or must be reverted, remove the chat page, chat workbench, companion chat header, chat API route, and local session storage changes, then return the app to the current state where chat exists only as a navigation target.
 
 ## In scope
-- Read the existing stored lesson result data needed for progress display.
-- Show a bounded progress summary on the progress page.
-- Compute deterministic badge unlocks from current lesson result data.
-- Show a recent-achievements or badge-cabinet surface on the progress page.
+- Add a first chat page for the local companion chat flow.
+- Show saved companion context in a bounded chat header or summary surface.
+- Add a stable chat message list and composer interaction.
+- Add only the minimum API route and local session state needed to send and render messages in the workbench.
 
 ## Out of scope
-- Broader analytics dashboards, charts, filtering, or historical reporting.
-- Changes to lesson execution, chat behavior, runtime/model connectivity, or companion creation.
-- Server-backed persistence, Prisma/SQLite integration, or cross-page progress systems.
-- Non-deterministic badge logic or unrelated refactors.
+- Streaming responses, rich markdown rendering, attachments, or multi-session history management.
+- Changes to lessons, progress, create flow, or runtime connectivity behavior.
+- Broad model orchestration refactors or server-backed persistence.
+- Unrelated navigation or layout refactors.
 
 ## Tasks
-- Add a small progress-summary helper that derives stable progress fields from stored lesson results.
-- Add deterministic badge rules for the first unlockable progress slice.
-- Replace the progress placeholder with a bounded progress view.
-- Add a recent-achievements or badge-cabinet UI driven by the derived badge state.
+- Add a bounded chat page that replaces the current placeholder route.
+- Add a companion-aware chat header using the saved draft companion context.
+- Add a stable local chat panel with message list and composer.
+- Add the smallest chat API route and session storage needed to render a local chat loop.
 
 ## Validation command
 `pnpm --filter web build`
@@ -76,10 +75,10 @@ NOT RUN
 none
 
 ## Acceptance criteria
-- A progress view exists.
-- Badges unlock from deterministic rules.
-- A recent achievement list or equivalent badge-cabinet surface is visible.
-- The phase stays bounded to the first progress-and-badges slice and does not introduce unrelated refactors.
+- User can open a local chat session.
+- Selected companion context is applied in the chat surface.
+- Messages render in a stable chat UI.
+- The phase stays bounded to the first chat-workbench slice and does not introduce unrelated refactors.
 - Validation command passes.
 
 ## Completion summary
