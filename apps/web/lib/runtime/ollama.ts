@@ -17,17 +17,42 @@ export type RuntimeModelsResponse = RuntimeHealth & {
   models: RuntimeModel[];
 };
 
+export type OllamaChatMessage = {
+  role: 'system' | 'assistant' | 'user';
+  content: string;
+};
+
+type OllamaChatRequest = {
+  messages: OllamaChatMessage[];
+};
+
+type OllamaChatResponse =
+  | {
+      ok: true;
+      reply: string;
+    }
+  | {
+      ok: false;
+      error: string;
+    };
+
 function getBaseUrl() {
   return process.env.OLLAMA_BASE_URL ?? DEFAULT_OLLAMA_URL;
 }
 
-async function fetchOllama(path: string) {
+async function fetchOllama(path: string, init?: RequestInit) {
   return fetch(`${getBaseUrl()}${path}`, {
+    ...init,
     headers: {
       Accept: 'application/json',
+      ...(init?.headers ?? {}),
     },
     cache: 'no-store',
   });
+}
+
+function getDefaultChatModel(models: RuntimeModel[]) {
+  return models[0]?.name;
 }
 
 export async function getRuntimeHealth(): Promise<RuntimeHealth> {
@@ -99,6 +124,61 @@ export async function listRuntimeModels(): Promise<RuntimeModelsResponse> {
       connected: false,
       models: [],
       error: 'Unable to load models from the local Ollama runtime.',
+    };
+  }
+}
+
+export async function sendRuntimeChat(
+  request: OllamaChatRequest,
+): Promise<OllamaChatResponse> {
+  const models = await listRuntimeModels();
+  const model = getDefaultChatModel(models.models);
+
+  if (!models.connected || !model) {
+    return {
+      ok: false,
+      error: models.error || 'Unable to reach the local Ollama runtime.',
+    };
+  }
+
+  try {
+    const response = await fetchOllama('/api/chat', {
+      method: 'POST',
+      headers: {
+        'Content-Type': 'application/json',
+      },
+      body: JSON.stringify({
+        model,
+        stream: false,
+        messages: request.messages,
+      }),
+    });
+
+    if (!response.ok) {
+      return {
+        ok: false,
+        error: `Runtime responded with status ${response.status}.`,
+      };
+    }
+
+    const data = await response.json();
+    const reply = data?.message?.content;
+
+    if (typeof reply !== 'string' || !reply.trim()) {
+      return {
+        ok: false,
+        error: 'Local Ollama returned an empty chat reply.',
+      };
+    }
+
+    return {
+      ok: true,
+      reply,
+    };
+  } catch {
+    return {
+      ok: false,
+      error: 'Unable to reach the local Ollama runtime.',
     };
   }
 }
