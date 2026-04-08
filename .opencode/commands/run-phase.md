@@ -8,6 +8,10 @@ Read .opencode/plans/current-phase.md and implement only that phase.
 Rules:
 - stay inside scope
 - avoid unrelated edits
-- run the listed validation command
-- if the first validation run fails, fix only phase-related issues once
-- update Validation and Completion summary before stopping
+- do not run the phase validation command as the final gate
+- use only the smallest relevant commands needed to implement the phase
+- do not declare PASS or FAIL
+- update Completion summary with:
+  - files changed
+  - implementation summary
+  - known risks

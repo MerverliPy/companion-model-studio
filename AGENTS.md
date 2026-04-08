@@ -17,6 +17,8 @@ Build a local-first studio for creating, training, and chatting with a user-owne
 - Prefer single-module phases
 - Default expected max files changed: 5
 - Never silently expand scope
+- Builder implements only
+- Validator validates only
 - Validator must not edit files
 - Shipper drafts commit message and next-step notes, but does not push
 
