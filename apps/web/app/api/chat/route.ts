@@ -1,19 +1,8 @@
 import { NextResponse } from 'next/server';
 
 import { personalityTemplates, type CompanionDraft } from '../../../lib/companions/companion-schema';
+import { parseChatRequest, type ChatRequest } from '../../../lib/chat/chat-request-schema';
 import { sendRuntimeChat, type OllamaChatMessage } from '../../../lib/runtime/ollama';
-
-type ChatRequest = {
-  companion: CompanionDraft | null;
-  messages: Array<{
-    role: 'assistant' | 'user';
-    content: string;
-  }>;
-  selectedModel: string;
-};
-
-const SELECTED_MODEL_REQUIRED_REPLY =
-  'Choose a local Ollama model before sending a chat message.';
 
 function buildSystemPrompt(companion: CompanionDraft | null) {
   const template = personalityTemplates.find(
@@ -53,16 +42,35 @@ function buildRuntimeMessages(body: ChatRequest): OllamaChatMessage[] {
 }
 
 export async function POST(request: Request) {
-  const body = (await request.json()) as ChatRequest;
-  const selectedModel = body.selectedModel?.trim() || '';
+  let body: unknown;
 
-  if (!selectedModel) {
-    return NextResponse.json({ error: SELECTED_MODEL_REQUIRED_REPLY }, { status: 400 });
+  try {
+    body = await request.json();
+  } catch {
+    return NextResponse.json(
+      {
+        error: 'Invalid chat request.',
+        details: ['Request body must be valid JSON.'],
+      },
+      { status: 400 },
+    );
+  }
+
+  const parseResult = parseChatRequest(body);
+
+  if (!parseResult.ok) {
+    return NextResponse.json(
+      {
+        error: parseResult.error,
+        details: parseResult.details,
+      },
+      { status: 400 },
+    );
   }
 
   const runtimeReply = await sendRuntimeChat({
-    selectedModel,
-    messages: buildRuntimeMessages(body),
+    selectedModel: parseResult.value.selectedModel,
+    messages: buildRuntimeMessages(parseResult.value),
   });
 
   if (!runtimeReply.ok) {

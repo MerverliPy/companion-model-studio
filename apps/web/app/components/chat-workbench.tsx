@@ -22,6 +22,11 @@ import { loadSelectedModelState } from '../../lib/runtime/model-selection-store'
 
 type ComposerState = 'idle' | 'sending' | 'error';
 
+type ChatErrorResponse = {
+  error?: string;
+  details?: string[];
+};
+
 function getCompanionName(companion: CompanionDraft | null) {
   return companion?.name || 'Your companion';
 }
@@ -117,9 +122,14 @@ export function ChatWorkbench() {
       });
 
       if (!response.ok) {
-        const errorResult = (await response.json()) as { error?: string };
+        const errorResult = (await response.json()) as ChatErrorResponse;
+        const detailMessage = Array.isArray(errorResult.details)
+          ? errorResult.details.join(' ')
+          : '';
 
-        throw new Error(errorResult.error || 'Request failed');
+        throw new Error(
+          [errorResult.error, detailMessage].filter(Boolean).join(' ') || 'Request failed',
+        );
       }
 
       const result = (await response.json()) as { reply: string };
@@ -138,17 +148,10 @@ export function ChatWorkbench() {
         error instanceof Error && error.message
           ? error.message
           : 'I could not send that message just now. Please try again.';
-      const recoveredSession = {
-        ...session,
-        messages: [
-          ...optimisticSession.messages,
-          createAssistantMessage(nextComposerError),
-        ],
-        updatedAt: new Date().toISOString(),
-      };
 
-      setSession(recoveredSession);
-      saveChatSession(recoveredSession);
+      setSession(session);
+      saveChatSession(session);
+      setDraftMessage(content);
       setComposerState('error');
       setComposerError(nextComposerError);
     }
