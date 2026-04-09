@@ -1,33 +1,34 @@
 # Current Phase
 
-Selected candidate id: lessons-and-evals
+Selected candidate id: progress-and-badges
 
 Status: pending
 
 ## Goal
-Implement a bounded first lesson/eval loop so a user can run one built-in lesson against a saved companion draft, produce a score/result object, and view the stored latest result in the lessons flow without expanding into progress, badges, chat, or multi-pack systems.
+Connect the Progress view to the shipped lesson-results storage so users can see a bounded deterministic progress summary, badge unlock state, and recent achievements derived from stored lesson eval history.
 
 ## Why this phase is next
-- `skill-pack-selection` is now shipped in `.opencode/backlog/completed.yaml`, so the active phase must move to the next unshipped candidate.
-- `lessons-and-evals` is the highest-priority remaining candidate in `.opencode/backlog/candidates.yaml`.
-- The product spec lists lessons/evals as the next core loop after companion creation and skill selection.
-- This phase is the smallest safe dependency before any broader progress or badge work because it establishes the stored lesson result those follow-ups depend on.
+- There is no explicit new user scope overriding backlog order.
+- `.opencode/backlog/completed.yaml` is canonical, and `lessons-and-evals` is now complete, so it cannot be selected again.
+- Among remaining unshipped candidates, `progress-and-badges` is the next product candidate and is also the clearest same-module follow-up to the shipped lesson/eval loop.
+- This is the smallest safe next step because it uses existing lesson results to power the progress surface without expanding into chat, create-flow, analytics, or persistence redesign.
+- The repo workflow says web-only implementation phases should prefer the stable web validation command.
 
 ## Primary files
-- `apps/web/app/lessons/page.tsx`
-- `apps/web/app/components/lesson-attempt-panel.tsx`
-- `apps/web/lib/evals/lesson-flow.ts`
-- `apps/web/lib/companions/draft-store.ts`
-- `apps/web/lib/companions/companion-schema.ts`
+- `apps/web/app/progress/page.tsx`
+- `apps/web/app/components/progress-summary.tsx`
+- `apps/web/lib/progress/progress-summary.ts`
+- `apps/web/lib/progress/badges.ts`
+- `apps/web/lib/evals/result-store.ts`
 
 ## Expected max files changed
 5
 
 ## Forbidden paths
 - `apps/web/app/chat/**`
-- `apps/web/app/progress/**`
 - `apps/web/app/api/**`
 - `apps/web/app/create/**`
+- `apps/web/app/lessons/**`
 - `.opencode/backlog/**`
 - `.opencode/agents/**`
 - `.opencode/commands/**`
@@ -37,32 +38,31 @@ Implement a bounded first lesson/eval loop so a user can run one built-in lesson
 - `apps/web/.next/**`
 
 ## Risk
-The main risk is scope drift from one bounded lesson/eval into a broader lesson catalog, history system, or cross-page training flow.
+The main risk is scope drift into a broad analytics dashboard or cross-module refactor instead of a bounded progress view driven by already-stored lesson results.
 
-A second risk is leaking this phase into progress or badge behavior before the lesson result contract is kept stable and minimal.
+A second risk is changing badge rules in a way that depends on future server persistence or non-deterministic state, which would weaken the acceptance criteria for this small phase.
 
 ## Rollback note
-If this phase becomes unstable, revert the lessons page, lesson attempt panel, and lesson-flow changes so the app returns to its prior state without partial lesson-result storage behavior.
+If this phase becomes unstable, revert the Progress page and supporting progress derivation changes, returning the progress surface to its prior bounded state while keeping lesson storage behavior unchanged.
 
 ## In scope
-- Define or refine one built-in lesson pack for the first eval loop.
-- Run the lesson against the saved companion draft and produce a deterministic result object.
-- Store the latest lesson result using the current bounded local approach.
-- Display the saved result clearly in the lessons UI.
+- Read lesson results from the current local result storage approach.
+- Derive a deterministic progress summary from stored lesson results.
+- Derive deterministic badge unlock state from stored lesson results.
+- Show recent achievements in the Progress view.
 
 ## Out of scope
-- Progress dashboard changes or badge unlock UX.
-- Chat behavior or runtime connectivity changes.
-- Multiple lesson packs, lesson history, or catalog redesign.
-- Create-flow redesign beyond what is strictly required for reading the saved draft.
-- Workflow/backlog/ledger edits.
+- New lesson packs or changes to the lessons attempt flow.
+- Broad analytics, charts, exports, or long-term reporting.
+- Chat runtime behavior or companion conversation changes.
+- Create-flow redesign, skill-pack redesign, or workflow/ledger edits.
 
 ## Tasks
-- Review the saved companion draft contract and keep the lesson phase aligned with existing draft data.
-- Implement or tighten one built-in lesson pack and deterministic evaluation logic.
-- Persist the latest lesson result through the existing bounded local storage path.
-- Update the lessons UI so the user can run the lesson and see the stored result.
-- Keep all changes bounded to the listed files and avoid progress or badge expansion.
+- Replace single-result progress assumptions with reads from the shipped lesson-results store.
+- Update progress summary derivation to use stored results and surface bounded metrics.
+- Update badge derivation to use deterministic rules over stored results.
+- Update the Progress UI so recent achievements are visible from the derived badge/progress data.
+- Keep changes bounded to the listed files and within the 5-file limit.
 
 ## Validation command
 `pnpm --filter web validate`
@@ -74,11 +74,13 @@ If this phase becomes unstable, revert the lessons page, lesson attempt panel, a
 - none
 
 ## Acceptance criteria
-- At least one lesson pack exists.
-- Running the lesson produces a score/result object.
-- The latest lesson result can be stored and displayed.
+- The Progress view exists and renders from stored lesson results.
+- Badges unlock from deterministic rules derived from stored lesson results.
+- A recent achievements list is visible in the Progress view.
 - The phase stays within the expected max file count and forbidden paths remain untouched.
 - `pnpm --filter web validate` passes.
 
 ## Completion summary
-- pending
+- Files changed: pending
+- Implementation summary: pending
+- Known risks: pending

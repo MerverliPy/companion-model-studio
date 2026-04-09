@@ -5,22 +5,25 @@ import { useEffect, useState } from 'react';
 import { loadCompanionDraft } from '../../lib/companions/draft-store';
 import {
   builtInLessonPack,
-  loadLessonResult,
+} from '../../lib/evals/lesson-packs';
+import {
   runLessonEvaluation,
-  saveLessonResult,
   type LessonAttemptResult,
-} from '../../lib/evals/lesson-flow';
+} from '../../lib/evals/eval-runner';
+import { loadLessonResults, saveLessonResult } from '../../lib/evals/result-store';
 
 export function LessonAttemptPanel() {
   const [draftName, setDraftName] = useState<string | null>(null);
-  const [result, setResult] = useState<LessonAttemptResult | null>(null);
+  const [results, setResults] = useState<LessonAttemptResult[]>([]);
   const [error, setError] = useState('');
+
+  const latestResult = results[0] ?? null;
 
   useEffect(() => {
     const draft = loadCompanionDraft();
 
     setDraftName(draft?.name ?? null);
-    setResult(loadLessonResult());
+    setResults(loadLessonResults());
   }, []);
 
   function runLessonAttempt() {
@@ -32,11 +35,11 @@ export function LessonAttemptPanel() {
       return;
     }
 
-    const nextResult = runLessonEvaluation(draft);
+    const nextResult = runLessonEvaluation(builtInLessonPack, draft);
 
-    saveLessonResult(nextResult);
+    const nextResults = saveLessonResult(nextResult);
     setDraftName(draft.name);
-    setResult(nextResult);
+    setResults(nextResults);
     setError('');
   }
 
@@ -76,21 +79,31 @@ export function LessonAttemptPanel() {
       </div>
 
       <div style={{ display: 'grid', gap: '0.5rem' }}>
-        <h3 style={{ margin: 0 }}>Stored result object</h3>
-        {result ? (
-          <pre
-            style={{
-              margin: 0,
-              padding: '1rem',
-              borderRadius: '10px',
-              background: '#f3f4f6',
-              overflowX: 'auto',
-            }}
-          >
-            {JSON.stringify(result, null, 2)}
-          </pre>
+        <h3 style={{ margin: 0 }}>Stored lesson results</h3>
+        {latestResult ? (
+          <div style={{ display: 'grid', gap: '0.75rem' }}>
+            <pre
+              style={{
+                margin: 0,
+                padding: '1rem',
+                borderRadius: '10px',
+                background: '#f3f4f6',
+                overflowX: 'auto',
+              }}
+            >
+              {JSON.stringify(latestResult, null, 2)}
+            </pre>
+            <ul style={{ margin: 0, paddingLeft: '1.25rem' }}>
+              {results.map((storedResult) => (
+                <li key={`${storedResult.lessonPackId}-${storedResult.attemptedAt}`}>
+                  <strong>{storedResult.companionName}</strong>: {storedResult.score}% ·{' '}
+                  {storedResult.passed ? 'ready' : 'needs updates'} · {storedResult.attemptedAt}
+                </li>
+              ))}
+            </ul>
+          </div>
         ) : (
-          <p style={{ margin: 0 }}>No lesson result saved yet.</p>
+          <p style={{ margin: 0 }}>No lesson results saved yet.</p>
         )}
       </div>
     </section>
