@@ -16,7 +16,7 @@ Failure flow: orchestrator -> builder -> validator -> repair -> validator -> shi
 
 ## Canonical completion ledger
 - The canonical shipped/completed source of truth is `.opencode/backlog/completed.yaml`.
-- `.opencode/plans/current-phase.md` is the active working plan only.
+- `.opencode/plans/current-phase.md` is the active working plan only and should frame the next unshipped bounded phase.
 - A candidate id listed in `.opencode/backlog/completed.yaml` is considered complete and must not be re-selected.
 - Shipper is the only agent allowed to append ids to `.opencode/backlog/completed.yaml`.
 - Shipper may only append an id after validator PASS for the active phase.

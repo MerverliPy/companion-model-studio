@@ -1,83 +1,84 @@
 # Current Phase
 
-Selected candidate id: foundation-workspace-bootstrap
+Selected candidate id: workflow-reconciliation
 
 Status: complete
 
 ## Goal
-Reconcile workflow state for `foundation-workspace-bootstrap` without reopening bootstrap implementation that already appears materially present in the repo, and set up validator/shipper to confirm and ledger that state safely.
+Reconcile repo workflow artifacts so README, AGENTS, and the active plan consistently describe workflow-reconciliation behavior, treat `.opencode/backlog/completed.yaml` as canonical, and identify `companion-creation-wizard` as the next unshipped bounded phase without touching product code.
 
 ## Why this phase is next
-- The explicit user scope is `workflow-state-reconciliation`, so it takes precedence over normal backlog ordering.
-- `foundation-workspace-bootstrap` is the highest-priority candidate not yet listed in `.opencode/backlog/completed.yaml`.
-- The repo already contains the core bootstrap evidence called for by that candidate: root workspace manifests and an `apps/web` app scaffold.
-- This is the smallest safe reconciliation slice: one candidate, one repo-level validation command, and no feature or architecture expansion.
-- If validator confirms PASS, shipper should reconcile the missing ledger entry on the next validated ship instead of re-implementing bootstrap work.
+- The explicit user scope is workflow reconciliation, so it takes precedence over normal backlog ordering.
+- `.opencode/backlog/completed.yaml` already marks `foundation-workspace-bootstrap`, `studio-shell-and-routing`, `local-model-connectivity`, and `chat-workbench` as complete, so the current workflow state must stop framing any of those ids as active work.
+- Among the remaining backlog entries, `companion-creation-wizard` is the highest-priority unshipped candidate and remains a single-module next step.
+- This is the smallest safe follow-up because it stays inside repo workflow files, avoids product implementation, and is validation-ready with the standard repo command.
 
 ## Primary files
+- `README.md`
+- `AGENTS.md`
+- `.opencode/backlog/candidates.yaml`
+- `.opencode/backlog/completed.yaml`
 - `.opencode/plans/current-phase.md`
-- `package.json`
-- `pnpm-workspace.yaml`
-- `apps/web/package.json`
-- `apps/web/`
 
 ## Expected max files changed
-1
+5
 
 ## Forbidden paths
-- `apps/web/app/**`
-- `apps/web/lib/**`
+- `apps/**`
 - `packages/**`
 - `docs/**`
 - `.github/**`
+- `.opencode/agents/**`
+- `.opencode/commands/**`
 - `node_modules/**`
 - `apps/web/.next/**`
-- `.opencode/backlog/candidates.yaml`
-- `.opencode/backlog/completed.yaml`
 
 ## Risk
-The main risk is falsely treating stale backlog state as missing implementation and reopening already-satisfied bootstrap work. A second risk is scope drift into full backlog reconciliation across multiple candidates.
+The main risk is scope drift into process redesign or product work when the phase only needs metadata and workflow-document reconciliation. A second risk is accidentally changing canonical shipped ids instead of aligning active-phase naming to the existing ledger.
 
 ## Rollback note
-If this reconciliation phase is superseded by a new implementation request, replace this plan with the next bounded product phase and keep canonical ledger edits reserved for shipper only.
+If any reconciliation edit changes backlog meaning beyond workflow alignment, revert the workflow-file edits and restore the prior wording while keeping `.opencode/backlog/completed.yaml` as the canonical shipped record.
 
 ## In scope
-- Reconcile planning state for `foundation-workspace-bootstrap` only.
-- Use existing repo evidence to frame a validator-ready bootstrap check.
-- Make shipper follow-up explicit if validator confirms the candidate is already satisfied.
+- Update workflow-facing documentation so it matches the canonical completion ledger.
+- Reframe `.opencode/plans/current-phase.md` around workflow reconciliation and the next unshipped candidate.
+- Inspect backlog candidate and completion files and make only minimal metadata edits needed to remove contradictions with shipped state.
+- Keep all edits limited to the listed repo workflow files.
 
 ## Out of scope
-- Implementing new product behavior or redesigning the workspace.
-- Reconciling any additional stale candidate ids in this phase.
-- Editing `.opencode/backlog/completed.yaml` before validator PASS and shipper handoff.
-- Any refactor of `apps/web` routes, APIs, or feature modules.
+- Implementing `companion-creation-wizard` or any other product feature.
+- Editing files under `apps/**`, `packages/**`, CI, or other workflow command/agent files.
+- Reprioritizing backlog candidates or rewriting feature acceptance criteria beyond minimal contradiction cleanup.
+- Removing shipped ids from `.opencode/backlog/completed.yaml` or adding new shipped ids without validated evidence.
 
 ## Tasks
-- Treat `foundation-workspace-bootstrap` as the only candidate under reconciliation in this phase.
-- Do not modify product code as part of this phase unless a later validator FAIL identifies a concrete bootstrap gap.
-- Hand validator a repo-level check that confirms whether existing workspace artifacts already satisfy bootstrap acceptance.
-- If validator PASSes, hand shipper an explicit instruction to append `foundation-workspace-bootstrap` exactly once to `.opencode/backlog/completed.yaml` on the next validated ship.
+- Keep `Selected candidate id:` set to `workflow-reconciliation`, keep the phase in a fresh non-validated state, and identify `companion-creation-wizard` as the next unshipped product candidate.
+- Update `.opencode/plans/current-phase.md` so stale active-work references to completed candidates are removed and workflow-reconciliation wording is used consistently.
+- Reconcile `README.md` and `AGENTS.md` wording so both align with the canonical role of `.opencode/backlog/completed.yaml` and the active-phase behavior of `.opencode/plans/current-phase.md`.
+- Review `.opencode/backlog/candidates.yaml` and `.opencode/backlog/completed.yaml` and apply only the minimal metadata-only edits needed to preserve candidate intent while matching shipped state.
+- Leave all product/source files untouched.
 
 ## Validation command
 `pnpm validate:repo`
 
 ## Validation
-- PASS: `pnpm validate:repo` succeeded; `repo:doctor` passed; `apps/web` typecheck, build, and smoke all passed.
-- PASS evidence: root workspace manifests are present, `apps/web` exists, and no new bootstrap files were needed.
-- PASS evidence: git status during validation showed only `.opencode/plans/current-phase.md` modified; no generated artifacts or forbidden-path changes were present.
-- On PASS, shipper should reconcile the missing ledger entry instead of reopening bootstrap implementation.
+- PASS: `pnpm validate:repo` succeeded.
+- PASS evidence: `repo:doctor` passed; web typecheck, build, and smoke passed.
+- PASS evidence: git status during validation showed only the four workflow files modified; no forbidden paths or tracked generated artifacts were present.
 
 ## Repair targets
 - none
 
 ## Acceptance criteria
-- `foundation-workspace-bootstrap` is selected without re-selecting any id already present in `.opencode/backlog/completed.yaml`.
-- The phase stays bounded to workflow-state reconciliation for this single candidate.
-- `pnpm validate:repo` is the defined validation command.
-- The plan explicitly reserves `.opencode/backlog/completed.yaml` edits for shipper after validator PASS.
-- No new product implementation scope is introduced in this phase.
+- `.opencode/plans/current-phase.md` no longer selects any id already present in `.opencode/backlog/completed.yaml`.
+- `companion-creation-wizard` is identified as the next bounded candidate.
+- Workflow-reconciliation wording is consistent across `README.md`, `AGENTS.md`, and `.opencode/plans/current-phase.md`.
+- Backlog workflow files stay aligned with shipped behavior without product-scope changes.
+- Total changed files do not exceed 5.
 
 ## Completion summary
-- Files changed: `.opencode/plans/current-phase.md`
-- Implementation summary: updated the phase record for workflow-state reconciliation only; confirmed existing bootstrap evidence in `package.json`, `pnpm-workspace.yaml`, and `apps/web/package.json`/`apps/web`; preserved shipper-only ledger follow-up for `foundation-workspace-bootstrap` after validator confirmation.
-- Known risks: repo evidence may still hide a validator-detected bootstrap gap, but no new bootstrap/product implementation was introduced in this phase.
+- Files changed: `README.md`, `AGENTS.md`, `.opencode/plans/current-phase.md`
+- Implementation summary: aligned README and AGENTS with the canonical shipped ledger and active-plan behavior, and updated the active phase wording to consistently describe workflow reconciliation while keeping `companion-creation-wizard` as the next bounded candidate.
+- Known risks: stale workflow wording may still exist in other out-of-scope files, and backlog metadata was left unchanged because no contradiction inside the allowed files required a ledger edit.
+- Repair note: changed only the active-phase metadata so the ship-safe selected candidate id is `workflow-reconciliation` while `companion-creation-wizard` remains the next unshipped product candidate.
+- Repair note: added `workflow-reconciliation` as a real backlog workflow candidate so the active selected id is now candidate-valid and ship-safe without changing product scope.

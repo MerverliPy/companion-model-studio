@@ -1,5 +1,6 @@
 version: 1
 shipped_ids:
+  - workflow-reconciliation
   - chat-workbench
   - local-model-connectivity
   - studio-shell-and-routing

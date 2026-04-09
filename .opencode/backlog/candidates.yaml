@@ -11,6 +11,24 @@ constraints:
   avoid_generic_tasks: true
 
 candidates:
+  - id: workflow-reconciliation
+    module: workflow
+    priority: 11
+    drivers:
+      - reconcile workflow artifacts with canonical shipped state
+      - keep active phase selection and ledger behavior ship-safe
+    files:
+      - README.md
+      - AGENTS.md
+      - .opencode/backlog/candidates.yaml
+      - .opencode/backlog/completed.yaml
+      - .opencode/plans/current-phase.md
+    validation: run the repo workflow validation command defined by the phase
+    acceptance:
+      - workflow docs match canonical shipped behavior
+      - active phase naming is ship-safe
+      - next unshipped product candidate remains clearly identified
+
   - id: foundation-workspace-bootstrap
     module: workspace
     priority: 10
