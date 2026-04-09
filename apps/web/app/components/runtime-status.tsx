@@ -3,7 +3,9 @@
 import { useEffect, useState } from 'react';
 
 import {
+  loadSelectedModelState,
   loadSelectedModel,
+  saveAvailableModels,
   saveSelectedModel,
 } from '../../lib/runtime/model-selection-store';
 
@@ -28,6 +30,7 @@ export function RuntimeStatus() {
   const [health, setHealth] = useState<RuntimeHealth | null>(null);
   const [models, setModels] = useState<RuntimeModel[]>([]);
   const [selectedModel, setSelectedModel] = useState('');
+  const [selectionStatus, setSelectionStatus] = useState<'missing' | 'stale' | 'valid'>('missing');
   const [isLoading, setIsLoading] = useState(true);
 
   useEffect(() => {
@@ -47,18 +50,17 @@ export function RuntimeStatus() {
           return;
         }
 
+        const availableModels = nextModels.models.map((model) => model.name);
         const storedSelectedModel = loadSelectedModel();
-        const hasStoredSelectedModel = nextModels.models.some(
-          (model) => model.name === storedSelectedModel,
-        );
 
         setHealth(nextHealth);
         setModels(nextModels.models);
-        setSelectedModel(hasStoredSelectedModel ? storedSelectedModel : '');
+        saveAvailableModels(availableModels);
 
-        if (!hasStoredSelectedModel) {
-          saveSelectedModel('');
-        }
+        const nextSelectionState = loadSelectedModelState();
+
+        setSelectedModel(storedSelectedModel);
+        setSelectionStatus(nextSelectionState.status);
       } catch {
         if (!isActive) {
           return;
@@ -71,6 +73,7 @@ export function RuntimeStatus() {
           error: 'Unable to load runtime status from the web shell.',
         });
         setModels([]);
+        setSelectionStatus(loadSelectedModelState().status);
       } finally {
         if (isActive) {
           setIsLoading(false);
@@ -106,11 +109,15 @@ export function RuntimeStatus() {
           const nextSelectedModel = event.target.value;
 
           setSelectedModel(nextSelectedModel);
+          setSelectionStatus(nextSelectedModel ? 'valid' : 'missing');
           saveSelectedModel(nextSelectedModel);
         }}
         disabled={isLoading || models.length === 0}
       >
         <option value="">Choose a local model</option>
+        {selectionStatus === 'stale' && selectedModel ? (
+          <option value={selectedModel}>{`${selectedModel} (unavailable)`}</option>
+        ) : null}
         {models.length === 0 ? (
           <option value="" disabled>
             No local models available
@@ -125,9 +132,11 @@ export function RuntimeStatus() {
       </select>
 
       <p>
-        {selectedModel
+        {selectionStatus === 'valid' && selectedModel
           ? `Using ${selectedModel} for this page session.`
-          : 'Choose a local model before sending a chat message.'}
+          : selectionStatus === 'stale' && selectedModel
+            ? `${selectedModel} is no longer available locally. Choose another model before sending a chat message.`
+            : 'Choose a local model before sending a chat message.'}
       </p>
     </section>
   );

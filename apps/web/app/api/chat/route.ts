@@ -9,12 +9,11 @@ type ChatRequest = {
     role: 'assistant' | 'user';
     content: string;
   }>;
-  selectedModel?: string;
+  selectedModel: string;
 };
 
 const SELECTED_MODEL_REQUIRED_REPLY =
   'Choose a local Ollama model before sending a chat message.';
-const RUNTIME_CHAT_FAILED_REPLY = 'I could not start chat with the selected local model.';
 
 function buildSystemPrompt(companion: CompanionDraft | null) {
   const template = personalityTemplates.find(
@@ -58,7 +57,7 @@ export async function POST(request: Request) {
   const selectedModel = body.selectedModel?.trim() || '';
 
   if (!selectedModel) {
-    return NextResponse.json({ reply: SELECTED_MODEL_REQUIRED_REPLY });
+    return NextResponse.json({ error: SELECTED_MODEL_REQUIRED_REPLY }, { status: 400 });
   }
 
   const runtimeReply = await sendRuntimeChat({
@@ -66,9 +65,9 @@ export async function POST(request: Request) {
     messages: buildRuntimeMessages(body),
   });
 
-  const reply = runtimeReply.ok
-    ? runtimeReply.reply
-    : `${RUNTIME_CHAT_FAILED_REPLY} ${runtimeReply.error}`;
+  if (!runtimeReply.ok) {
+    return NextResponse.json({ error: runtimeReply.error }, { status: 409 });
+  }
 
-  return NextResponse.json({ reply });
+  return NextResponse.json({ reply: runtimeReply.reply });
 }

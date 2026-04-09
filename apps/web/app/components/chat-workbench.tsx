@@ -18,7 +18,7 @@ import {
   type ChatMessage,
   type ChatSession,
 } from '../../lib/chat/session-store';
-import { loadSelectedModel } from '../../lib/runtime/model-selection-store';
+import { loadSelectedModelState } from '../../lib/runtime/model-selection-store';
 
 type ComposerState = 'idle' | 'sending' | 'error';
 
@@ -40,6 +40,7 @@ export function ChatWorkbench() {
   const [session, setSession] = useState<ChatSession | null>(null);
   const [draftMessage, setDraftMessage] = useState('');
   const [composerState, setComposerState] = useState<ComposerState>('idle');
+  const [composerError, setComposerError] = useState('');
 
   useEffect(() => {
     const savedCompanion = loadCompanionDraft();
@@ -78,6 +79,18 @@ export function ChatWorkbench() {
       return;
     }
 
+    const selectedModelState = loadSelectedModelState();
+
+    if (selectedModelState.status !== 'valid') {
+      setComposerState('error');
+      setComposerError(
+        selectedModelState.status === 'stale' && selectedModelState.selectedModel
+          ? `${selectedModelState.selectedModel} is no longer available locally. Choose another model before sending a chat message.`
+          : 'Choose a local Ollama model before sending a chat message.',
+      );
+      return;
+    }
+
     const userMessage = createUserMessage(content);
     const optimisticSession = {
       ...session,
@@ -88,6 +101,7 @@ export function ChatWorkbench() {
     setSession(optimisticSession);
     setDraftMessage('');
     setComposerState('sending');
+    setComposerError('');
 
     try {
       const response = await fetch('/api/chat', {
@@ -98,12 +112,14 @@ export function ChatWorkbench() {
         body: JSON.stringify({
           companion,
           messages: optimisticSession.messages,
-          selectedModel: loadSelectedModel(),
+          selectedModel: selectedModelState.selectedModel,
         }),
       });
 
       if (!response.ok) {
-        throw new Error('Request failed');
+        const errorResult = (await response.json()) as { error?: string };
+
+        throw new Error(errorResult.error || 'Request failed');
       }
 
       const result = (await response.json()) as { reply: string };
@@ -116,12 +132,17 @@ export function ChatWorkbench() {
       setSession(nextSession);
       saveChatSession(nextSession);
       setComposerState('idle');
-    } catch {
+      setComposerError('');
+    } catch (error) {
+      const nextComposerError =
+        error instanceof Error && error.message
+          ? error.message
+          : 'I could not send that message just now. Please try again.';
       const recoveredSession = {
         ...session,
         messages: [
           ...optimisticSession.messages,
-          createAssistantMessage('I could not send that message just now. Please try again.'),
+          createAssistantMessage(nextComposerError),
         ],
         updatedAt: new Date().toISOString(),
       };
@@ -129,6 +150,7 @@ export function ChatWorkbench() {
       setSession(recoveredSession);
       saveChatSession(recoveredSession);
       setComposerState('error');
+      setComposerError(nextComposerError);
     }
   }
 
@@ -216,7 +238,9 @@ export function ChatWorkbench() {
           <button type="submit" disabled={!draftMessage.trim() || composerState === 'sending'}>
             {composerState === 'sending' ? 'Sending…' : 'Send message'}
           </button>
-          {composerState === 'error' ? <p>Last send failed, but your local session was kept.</p> : null}
+          {composerState === 'error' ? (
+            <p>{composerError || 'Last send failed, but your local session was kept.'}</p>
+          ) : null}
         </form>
       </div>
     </section>
