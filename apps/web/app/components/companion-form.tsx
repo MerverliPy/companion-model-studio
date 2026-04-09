@@ -3,8 +3,7 @@
 import { useMemo, useState, type FormEvent } from 'react';
 
 import { CompanionCardPreview } from './companion-card-preview';
-import { CompanionReviewStep } from './companion-review-step';
-import { SkillPackPicker } from './skill-pack-picker';
+import { CompanionReview } from './companion-review';
 import {
   avatarThemes,
   hasCompanionErrors,
@@ -22,7 +21,9 @@ const initialValues: CompanionDraftInput = {
   skillPacks: [],
 };
 
-type TouchedFields = Partial<Record<keyof CompanionDraftInput, boolean>>;
+type CoreCompanionField = 'name' | 'shortBio' | 'personalityTemplate' | 'avatarTheme';
+
+type TouchedFields = Partial<Record<CoreCompanionField, boolean>>;
 
 type SaveState = {
   type: 'idle' | 'saved' | 'error';
@@ -33,6 +34,7 @@ export function CompanionForm() {
   const [values, setValues] = useState<CompanionDraftInput>(initialValues);
   const [touched, setTouched] = useState<TouchedFields>({});
   const [submitAttempted, setSubmitAttempted] = useState(false);
+  const [step, setStep] = useState<'details' | 'review'>('details');
   const [saveState, setSaveState] = useState<SaveState>({ type: 'idle', message: '' });
 
   const errors = useMemo(() => validateCompanionInput(values), [values]);
@@ -42,8 +44,18 @@ export function CompanionForm() {
     setSaveState({ type: 'idle', message: '' });
   }
 
-  function showError(field: keyof CompanionDraftInput) {
+  function showError(field: CoreCompanionField) {
     return (submitAttempted || touched[field]) && errors[field];
+  }
+
+  function reviewCurrentInputs() {
+    setSubmitAttempted(true);
+
+    if (hasCompanionErrors(errors)) {
+      return;
+    }
+
+    setStep('review');
   }
 
   function saveDraft() {
@@ -59,6 +71,7 @@ export function CompanionForm() {
     setSubmitAttempted(true);
 
     if (hasCompanionErrors(errors)) {
+      setStep('details');
       return;
     }
 
@@ -84,6 +97,17 @@ export function CompanionForm() {
       <form onSubmit={handleSubmit} noValidate>
         <div style={{ display: 'grid', gap: '1rem' }}>
           <div>
+            <p style={{ marginBottom: '0.25rem', fontWeight: 600 }}>
+              {step === 'details' ? 'Step 1 of 2 · Companion details' : 'Step 2 of 2 · Review'}
+            </p>
+            <p style={{ marginTop: 0 }}>
+              {step === 'details'
+                ? 'Enter the core identity details for this draft companion.'
+                : 'Review the draft details before saving them to this browser.'}
+            </p>
+          </div>
+
+          <div>
             <label htmlFor="companion-name">Companion name</label>
             <input
               id="companion-name"
@@ -94,6 +118,7 @@ export function CompanionForm() {
               onBlur={() => setTouched((current) => ({ ...current, name: true }))}
               aria-describedby={showError('name') ? 'companion-name-error' : undefined}
               aria-invalid={Boolean(showError('name'))}
+              disabled={step === 'review'}
             />
             {showError('name') ? <p id="companion-name-error">{errors.name}</p> : null}
           </div>
@@ -109,6 +134,7 @@ export function CompanionForm() {
               onBlur={() => setTouched((current) => ({ ...current, shortBio: true }))}
               aria-describedby={showError('shortBio') ? 'companion-short-bio-error' : undefined}
               aria-invalid={Boolean(showError('shortBio'))}
+              disabled={step === 'review'}
             />
             {showError('shortBio') ? <p id="companion-short-bio-error">{errors.shortBio}</p> : null}
           </div>
@@ -127,6 +153,7 @@ export function CompanionForm() {
                 showError('personalityTemplate') ? 'companion-personality-template-error' : undefined
               }
               aria-invalid={Boolean(showError('personalityTemplate'))}
+              disabled={step === 'review'}
             >
               <option value="">Select a template</option>
               {personalityTemplates.map((template) => (
@@ -150,6 +177,7 @@ export function CompanionForm() {
               onBlur={() => setTouched((current) => ({ ...current, avatarTheme: true }))}
               aria-describedby={showError('avatarTheme') ? 'companion-avatar-theme-error' : undefined}
               aria-invalid={Boolean(showError('avatarTheme'))}
+              disabled={step === 'review'}
             >
               <option value="">Select a theme</option>
               {avatarThemes.map((theme) => (
@@ -163,20 +191,25 @@ export function CompanionForm() {
             ) : null}
           </div>
 
-          <SkillPackPicker
-            selectedSkillPacks={values.skillPacks}
-            onChange={(nextSkillPacks) => updateField('skillPacks', nextSkillPacks)}
-            error={showError('skillPacks') || undefined}
-          />
-
-          <button type="submit">Save draft companion</button>
+          {step === 'details' ? (
+            <button type="button" onClick={reviewCurrentInputs}>
+              Continue to review
+            </button>
+          ) : (
+            <div style={{ display: 'flex', gap: '0.75rem', flexWrap: 'wrap' }}>
+              <button type="button" onClick={() => setStep('details')}>
+                Back to edit
+              </button>
+              <button type="submit">Save draft companion</button>
+            </div>
+          )}
           {saveState.message ? <p>{saveState.message}</p> : null}
         </div>
       </form>
 
       <div style={{ display: 'grid', gap: '1.5rem' }}>
         <CompanionCardPreview values={values} />
-        <CompanionReviewStep values={values} />
+        <CompanionReview values={values} />
       </div>
     </div>
   );

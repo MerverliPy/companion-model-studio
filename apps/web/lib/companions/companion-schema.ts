@@ -1,5 +1,3 @@
-import { skillPackValues } from './skill-packs';
-
 export const personalityTemplates = [
   {
     value: 'warm-encourager',
@@ -76,13 +74,6 @@ export function validateCompanionInput(input: CompanionDraftInput): CompanionFie
 
   if (!avatarThemeValues.has(input.avatarTheme)) {
     errors.avatarTheme = 'Choose an avatar theme.';
-  }
-
-  if (
-    input.skillPacks.length === 0 ||
-    input.skillPacks.some((skillPack) => !skillPackValues.has(skillPack))
-  ) {
-    errors.skillPacks = 'Choose at least one skill pack.';
   }
 
   return errors;

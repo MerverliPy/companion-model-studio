@@ -1,84 +1,85 @@
 # Current Phase
 
-Selected candidate id: workflow-reconciliation
+Selected candidate id: skill-pack-selection
 
-Status: complete
+Status: pending
 
 ## Goal
-Reconcile repo workflow artifacts so README, AGENTS, and the active plan consistently describe workflow-reconciliation behavior, treat `.opencode/backlog/completed.yaml` as canonical, and identify `companion-creation-wizard` as the next unshipped bounded phase without touching product code.
+Add bounded skill-pack selection to the existing companion creation flow so a user can choose one or more skill packs, keep that selection in the draft record, and see the selected skills in the review step without expanding into lessons, chat, or runtime work.
 
 ## Why this phase is next
-- The explicit user scope is workflow reconciliation, so it takes precedence over normal backlog ordering.
-- `.opencode/backlog/completed.yaml` already marks `foundation-workspace-bootstrap`, `studio-shell-and-routing`, `local-model-connectivity`, and `chat-workbench` as complete, so the current workflow state must stop framing any of those ids as active work.
-- Among the remaining backlog entries, `companion-creation-wizard` is the highest-priority unshipped candidate and remains a single-module next step.
-- This is the smallest safe follow-up because it stays inside repo workflow files, avoids product implementation, and is validation-ready with the standard repo command.
+- There is no explicit new user scope overriding backlog order.
+- `.opencode/backlog/completed.yaml` is canonical, and the higher-priority candidates in `candidates.yaml` are already complete.
+- `skill-pack-selection` is the next unshipped candidate in the same `web` module and is a direct follow-up to the completed `companion-creation-wizard` phase.
+- The existing create flow already carries a bounded `skillPacks` field, which makes this the smallest safe next phase with clear validation.
 
 ## Primary files
-- `README.md`
-- `AGENTS.md`
-- `.opencode/backlog/candidates.yaml`
-- `.opencode/backlog/completed.yaml`
-- `.opencode/plans/current-phase.md`
+- `apps/web/app/components/companion-form.tsx`
+- `apps/web/app/components/companion-review.tsx`
+- `apps/web/lib/companions/skill-packs.ts`
+- `apps/web/lib/companions/companion-schema.ts`
+- `apps/web/lib/companions/draft-store.ts`
 
 ## Expected max files changed
 5
 
 ## Forbidden paths
-- `apps/**`
-- `packages/**`
-- `docs/**`
-- `.github/**`
+- `apps/web/app/chat/**`
+- `apps/web/app/lessons/**`
+- `apps/web/app/progress/**`
+- `apps/web/app/api/**`
+- `apps/web/app/create/page.tsx`
+- `.opencode/backlog/**`
 - `.opencode/agents/**`
 - `.opencode/commands/**`
+- `docs/**`
+- `.github/**`
 - `node_modules/**`
 - `apps/web/.next/**`
 
 ## Risk
-The main risk is scope drift into process redesign or product work when the phase only needs metadata and workflow-document reconciliation. A second risk is accidentally changing canonical shipped ids instead of aligning active-phase naming to the existing ledger.
+The main risk is turning a small selection phase into a broader redesign of companion configuration, persistence, or create-flow navigation.
+
+A second risk is introducing skill-pack-specific behavior beyond selection and review display, which belongs to later product phases.
 
 ## Rollback note
-If any reconciliation edit changes backlog meaning beyond workflow alignment, revert the workflow-file edits and restore the prior wording while keeping `.opencode/backlog/completed.yaml` as the canonical shipped record.
+If this phase becomes unstable, revert the skill-pack UI and validation changes and restore the create flow to the previously validated core identity-only behavior.
 
 ## In scope
-- Update workflow-facing documentation so it matches the canonical completion ledger.
-- Reframe `.opencode/plans/current-phase.md` around workflow reconciliation and the next unshipped candidate.
-- Inspect backlog candidate and completion files and make only minimal metadata edits needed to remove contradictions with shipped state.
-- Keep all edits limited to the listed repo workflow files.
+- Add UI for selecting one or more skill packs in the existing companion form.
+- Validate the skill-pack selection against the bounded defined options.
+- Keep selected skill packs in the saved draft companion record.
+- Show selected skill packs in the existing review step.
 
 ## Out of scope
-- Implementing `companion-creation-wizard` or any other product feature.
-- Editing files under `apps/**`, `packages/**`, CI, or other workflow command/agent files.
-- Reprioritizing backlog candidates or rewriting feature acceptance criteria beyond minimal contradiction cleanup.
-- Removing shipped ids from `.opencode/backlog/completed.yaml` or adding new shipped ids without validated evidence.
+- New skill-pack content systems beyond the current bounded definitions.
+- Lessons, evals, badges, or progress behavior.
+- Chat runtime behavior or model connectivity changes.
+- Create-flow step redesign beyond what is required to display and save skill-pack selections.
+- Workflow, backlog, or shipped-ledger edits.
 
 ## Tasks
-- Keep `Selected candidate id:` set to `workflow-reconciliation`, keep the phase in a fresh non-validated state, and identify `companion-creation-wizard` as the next unshipped product candidate.
-- Update `.opencode/plans/current-phase.md` so stale active-work references to completed candidates are removed and workflow-reconciliation wording is used consistently.
-- Reconcile `README.md` and `AGENTS.md` wording so both align with the canonical role of `.opencode/backlog/completed.yaml` and the active-phase behavior of `.opencode/plans/current-phase.md`.
-- Review `.opencode/backlog/candidates.yaml` and `.opencode/backlog/completed.yaml` and apply only the minimal metadata-only edits needed to preserve candidate intent while matching shipped state.
-- Leave all product/source files untouched.
+- Review the current create flow and use the existing draft shape to add bounded skill-pack selection.
+- Implement one-or-more skill-pack selection UI in `companion-form.tsx`.
+- Ensure submitted skill-pack values are constrained to the allowed definitions in `skill-packs.ts` and `companion-schema.ts`.
+- Display selected skill packs in `companion-review.tsx`.
+- Keep all changes inside the listed primary files and within the 5-file limit.
 
 ## Validation command
-`pnpm validate:repo`
+`pnpm --filter web validate`
 
 ## Validation
-- PASS: `pnpm validate:repo` succeeded.
-- PASS evidence: `repo:doctor` passed; web typecheck, build, and smoke passed.
-- PASS evidence: git status during validation showed only the four workflow files modified; no forbidden paths or tracked generated artifacts were present.
+- pending
 
 ## Repair targets
 - none
 
 ## Acceptance criteria
-- `.opencode/plans/current-phase.md` no longer selects any id already present in `.opencode/backlog/completed.yaml`.
-- `companion-creation-wizard` is identified as the next bounded candidate.
-- Workflow-reconciliation wording is consistent across `README.md`, `AGENTS.md`, and `.opencode/plans/current-phase.md`.
-- Backlog workflow files stay aligned with shipped behavior without product-scope changes.
-- Total changed files do not exceed 5.
+- User can select one or more skill packs in the companion creation flow.
+- Selected skill packs persist when the draft companion is saved.
+- Selected skill packs appear in the review step.
+- The phase stays within the expected max file count and forbidden paths remain untouched.
+- `pnpm --filter web validate` passes.
 
 ## Completion summary
-- Files changed: `README.md`, `AGENTS.md`, `.opencode/plans/current-phase.md`
-- Implementation summary: aligned README and AGENTS with the canonical shipped ledger and active-plan behavior, and updated the active phase wording to consistently describe workflow reconciliation while keeping `companion-creation-wizard` as the next bounded candidate.
-- Known risks: stale workflow wording may still exist in other out-of-scope files, and backlog metadata was left unchanged because no contradiction inside the allowed files required a ledger edit.
-- Repair note: changed only the active-phase metadata so the ship-safe selected candidate id is `workflow-reconciliation` while `companion-creation-wizard` remains the next unshipped product candidate.
-- Repair note: added `workflow-reconciliation` as a real backlog workflow candidate so the active selected id is now candidate-valid and ship-safe without changing product scope.
+- pending
