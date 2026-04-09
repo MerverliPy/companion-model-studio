@@ -156,3 +156,22 @@ candidates:
       - user can open a local chat session
       - selected companion context is applied
       - messages render in a stable chat UI
+
+  - id: runtime-model-selection-e2e
+    module: web
+    priority: 12
+    drivers:
+      - make local model selection real across ui api and runtime
+      - remove hidden first-model-wins behavior from chat execution
+    files:
+      - apps/web/app/components/runtime-status.tsx
+      - apps/web/app/components/chat-workbench.tsx
+      - apps/web/app/api/chat/route.ts
+      - apps/web/lib/runtime/ollama.ts
+      - apps/web/lib/runtime/model-selection-store.ts
+    validation: run pnpm --filter web validate
+    acceptance:
+      - selected runtime model is saved for the local chat session
+      - chat requests include selectedModel
+      - runtime chat uses selectedModel instead of the first available model
+      - missing or stale selected models fail clearly instead of silently falling back
