@@ -23,6 +23,7 @@ export type OllamaChatMessage = {
 };
 
 type OllamaChatRequest = {
+  selectedModel: string;
   messages: OllamaChatMessage[];
 };
 
@@ -49,10 +50,6 @@ async function fetchOllama(path: string, init?: RequestInit) {
     },
     cache: 'no-store',
   });
-}
-
-function getDefaultChatModel(models: RuntimeModel[]) {
-  return models[0]?.name;
 }
 
 export async function getRuntimeHealth(): Promise<RuntimeHealth> {
@@ -131,13 +128,30 @@ export async function listRuntimeModels(): Promise<RuntimeModelsResponse> {
 export async function sendRuntimeChat(
   request: OllamaChatRequest,
 ): Promise<OllamaChatResponse> {
-  const models = await listRuntimeModels();
-  const model = getDefaultChatModel(models.models);
+  const selectedModel = request.selectedModel.trim();
 
-  if (!models.connected || !model) {
+  if (!selectedModel) {
+    return {
+      ok: false,
+      error: 'Choose a local model before sending a chat message.',
+    };
+  }
+
+  const models = await listRuntimeModels();
+
+  if (!models.connected) {
     return {
       ok: false,
       error: models.error || 'Unable to reach the local Ollama runtime.',
+    };
+  }
+
+  const hasSelectedModel = models.models.some((model) => model.name === selectedModel);
+
+  if (!hasSelectedModel) {
+    return {
+      ok: false,
+      error: `Selected model "${selectedModel}" is not available in the local Ollama runtime.`,
     };
   }
 
@@ -148,7 +162,7 @@ export async function sendRuntimeChat(
         'Content-Type': 'application/json',
       },
       body: JSON.stringify({
-        model,
+        model: selectedModel,
         stream: false,
         messages: request.messages,
       }),

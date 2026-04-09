@@ -18,6 +18,7 @@ import {
   type ChatMessage,
   type ChatSession,
 } from '../../lib/chat/session-store';
+import { loadSelectedModel } from '../../lib/runtime/model-selection-store';
 
 type ComposerState = 'idle' | 'sending' | 'error';
 
@@ -97,6 +98,7 @@ export function ChatWorkbench() {
         body: JSON.stringify({
           companion,
           messages: optimisticSession.messages,
+          selectedModel: loadSelectedModel(),
         }),
       });
 

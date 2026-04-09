@@ -2,6 +2,11 @@
 
 import { useEffect, useState } from 'react';
 
+import {
+  loadSelectedModel,
+  saveSelectedModel,
+} from '../../lib/runtime/model-selection-store';
+
 type RuntimeHealth = {
   runtime: 'ollama';
   connected: boolean;
@@ -42,9 +47,18 @@ export function RuntimeStatus() {
           return;
         }
 
+        const storedSelectedModel = loadSelectedModel();
+        const hasStoredSelectedModel = nextModels.models.some(
+          (model) => model.name === storedSelectedModel,
+        );
+
         setHealth(nextHealth);
         setModels(nextModels.models);
-        setSelectedModel((current) => current || nextModels.models[0]?.name || '');
+        setSelectedModel(hasStoredSelectedModel ? storedSelectedModel : '');
+
+        if (!hasStoredSelectedModel) {
+          saveSelectedModel('');
+        }
       } catch {
         if (!isActive) {
           return;
@@ -88,11 +102,19 @@ export function RuntimeStatus() {
       <select
         id="runtime-model-select"
         value={selectedModel}
-        onChange={(event) => setSelectedModel(event.target.value)}
+        onChange={(event) => {
+          const nextSelectedModel = event.target.value;
+
+          setSelectedModel(nextSelectedModel);
+          saveSelectedModel(nextSelectedModel);
+        }}
         disabled={isLoading || models.length === 0}
       >
+        <option value="">Choose a local model</option>
         {models.length === 0 ? (
-          <option value="">No local models available</option>
+          <option value="" disabled>
+            No local models available
+          </option>
         ) : (
           models.map((model) => (
             <option key={model.name} value={model.name}>
@@ -102,7 +124,11 @@ export function RuntimeStatus() {
         )}
       </select>
 
-      <p>{selectedModel ? `Using ${selectedModel} for this page session.` : 'Choose a local model when one is available.'}</p>
+      <p>
+        {selectedModel
+          ? `Using ${selectedModel} for this page session.`
+          : 'Choose a local model before sending a chat message.'}
+      </p>
     </section>
   );
 }
