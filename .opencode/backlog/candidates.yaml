@@ -175,3 +175,22 @@ candidates:
       - chat requests include selectedModel
       - runtime chat uses selectedModel instead of the first available model
       - missing or stale selected models fail clearly instead of silently falling back
+
+  - id: chat-request-schema-hardening
+    module: web
+    priority: 11
+    drivers:
+      - harden the /api/chat boundary
+      - reject malformed or oversized chat payloads before runtime dispatch
+    files:
+      - apps/web/package.json
+      - apps/web/app/api/chat/route.ts
+      - apps/web/lib/chat/chat-request-schema.ts
+      - apps/web/lib/runtime/ollama.ts
+      - apps/web/app/components/chat-workbench.tsx
+    validation: run pnpm --filter web validate
+    acceptance:
+      - /api/chat parses request bodies through a schema layer
+      - malformed payloads return stable 400 responses with useful error details
+      - message role count length and selectedModel invariants are enforced before runtime dispatch
+      - chat ui handles schema rejection without corrupting the local session

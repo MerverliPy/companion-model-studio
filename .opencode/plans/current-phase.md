@@ -1,23 +1,24 @@
 # Current Phase
 
-Selected candidate id: runtime-model-selection-e2e
+Selected candidate id: chat-request-schema-hardening
 
-Status: complete
+Status: pending
 
 ## Goal
-Make runtime model selection behaviorally real across the web UI, chat request, API route, and Ollama runtime so chat uses the user-selected local model instead of implicitly choosing the first available model.
+Harden the `/api/chat` request boundary so malformed, oversized, or invalid chat payloads are rejected through a stable schema layer before any runtime dispatch occurs.
 
 ## Why this phase is next
-- `runtime-model-selection-e2e` is the only remaining unshipped candidate after excluding ids in `.opencode/backlog/completed.yaml`.
-- It is also the highest-priority remaining candidate and stays bounded to the existing web/runtime chat path.
-- The visible model selector is already present, so making that selection deterministic is the smallest safe follow-up with clear validation.
+- There is explicit user scope to continue the audited follow-up chain after the shipped runtime model-selection fix.
+- The chat route currently accepts request JSON too loosely, so schema enforcement is the smallest safe next step before SQLite/Prisma and server-backed persistence work.
+- This phase stays inside the existing web/chat/runtime surface and avoids bundling transport hardening with persistence migration.
+- Completing this phase creates a stable request contract for the next bounded follow-up: `sqlite-prisma-foundation`.
 
 ## Primary files
-- `apps/web/app/components/runtime-status.tsx`
-- `apps/web/app/components/chat-workbench.tsx`
+- `apps/web/package.json`
 - `apps/web/app/api/chat/route.ts`
+- `apps/web/lib/chat/chat-request-schema.ts`
 - `apps/web/lib/runtime/ollama.ts`
-- `apps/web/lib/runtime/model-selection-store.ts`
+- `apps/web/app/components/chat-workbench.tsx`
 
 ## Expected max files changed
 5
@@ -34,66 +35,62 @@ Make runtime model selection behaviorally real across the web UI, chat request, 
 - `apps/web/.next/**`
 
 ## Risk
-The main risk is preserving a hidden fallback path that still masks selection bugs by quietly choosing another model.
+The main risk is over-hardening the request contract in a way that breaks the current local chat flow instead of rejecting only invalid payloads.
 
-Secondary risk is scope drift into durable persistence, schema redesign, or broader chat refactoring beyond the selected-model path.
+A second risk is scope drift into persistence, authentication, or broader API refactors before this phase establishes a minimal stable schema boundary.
 
 ## Rollback note
-If validation fails or behavior regresses, revert selected-model propagation changes in the listed files and restore the prior runtime path without changing unrelated chat behavior.
+If this phase becomes unstable, revert the schema layer and route validation changes and restore the prior chat request parsing behavior, keeping all rollback limited to the listed files.
 
 ## In scope
-- Save the selected runtime model for the active local web session.
-- Propagate the selected model from UI state into outbound chat requests.
-- Accept and use the selected model in the chat API/runtime layer.
-- Fail clearly when a selected model is missing, empty, or stale instead of silently falling back.
+- Add a schema layer for `/api/chat` request parsing.
+- Enforce selected-model, message-shape, role, count, and content invariants before runtime dispatch.
+- Return stable 400 responses for invalid requests.
+- Update the chat UI to handle validation rejection without corrupting local session state.
 
 ## Out of scope
-- SQLite or Prisma persistence work.
-- Companion draft, lessons, or progress persistence changes.
-- Broader request-schema hardening beyond the minimal selected-model field needed for this phase.
-- Chat UI redesign or general chat refactoring.
-- CI, docs, backlog, or workflow artifact edits outside this plan file.
+- SQLite or Prisma setup.
+- Companion draft persistence changes.
+- Lesson or progress persistence changes.
+- Chat-session server persistence.
+- Test-framework introduction or CI workflow changes.
+- Docs, backlog, or workflow artifact edits.
 
 ## Tasks
-- Confirm where runtime model selection currently stops being propagated.
-- Implement a small local session model-selection store in `apps/web/lib/runtime/model-selection-store.ts`.
-- Update `runtime-status.tsx` to write and restore the selected model for the active session.
-- Update `chat-workbench.tsx` so chat requests include `selectedModel`.
-- Update `app/api/chat/route.ts` to validate and pass through `selectedModel`.
-- Update `lib/runtime/ollama.ts` so chat execution uses `selectedModel` and fails clearly when it is unavailable.
+- Review the current `/api/chat` request shape and identify missing invariants.
+- Add a chat request schema module for route-level parsing and validation.
+- Update the chat route to use the schema layer before runtime dispatch.
+- Enforce message role, message count, trimmed content, and selected-model requirements.
+- Return stable invalid-request responses from the route.
+- Update the chat workbench to handle schema rejection without corrupting the current local session.
+- Keep changes bounded to the listed files.
 
 ## Validation command
 `pnpm --filter web validate`
 
 ## Validation
-- PASS: `pnpm --filter web validate` completed successfully (typecheck, Next build, and `smoke-web` all passed on 2026-04-09).
-- PASS: selected-model propagation is explicit across the bounded phase: `runtime-status.tsx` restores/saves session selection, `chat-workbench.tsx` sends `selectedModel`, `app/api/chat/route.ts` requires and forwards it, and `lib/runtime/ollama.ts` trims, validates availability, and submits `model: selectedModel` to Ollama.
-- PASS: no silent first-model fallback remains for chat execution; prior `nextModels.models[0]?.name` UI auto-selection and runtime default-model helper were removed, and runtime chat now fails clearly for missing or stale selections.
-- PASS: bounded scope held to the five primary implementation files, with no forbidden/generated artifact changes detected (`node_modules/**`, `apps/web/.next/**`).
+- PENDING: validator must run `pnpm --filter web validate`.
+- Expected validator checks:
+  - typecheck passes
+  - Next.js build passes
+  - web smoke passes
+- Validator should also confirm that invalid payloads are rejected before the Ollama runtime layer is called and that the local chat UI remains stable after schema rejection.
 
 ## Repair targets
 - none
 
 ## Acceptance criteria
-- The selected runtime model is saved for the active local web session.
-- Chat requests include `selectedModel`.
-- Runtime chat uses `selectedModel` instead of the first available model.
-- Missing, empty, or stale selected models fail clearly without silent fallback.
+- `/api/chat` parses request bodies through a schema layer.
+- Malformed payloads return stable 400 responses with useful error details.
+- Message role, count, length, and `selectedModel` invariants are enforced before runtime dispatch.
+- Chat UI handles schema rejection without corrupting the local session.
 - `pnpm --filter web validate` passes.
 
 ## Completion summary
 - files changed:
-  - `.opencode/plans/current-phase.md`
-  - `apps/web/app/components/runtime-status.tsx`
-  - `apps/web/app/components/chat-workbench.tsx`
-  - `apps/web/app/api/chat/route.ts`
-  - `apps/web/lib/runtime/ollama.ts`
-  - `apps/web/lib/runtime/model-selection-store.ts`
+  - none yet
 - implementation summary:
-  - added a session-scoped runtime model selection store and updated the runtime status UI to restore, save, and clear stale selected models without auto-falling back to the first model
-  - propagated `selectedModel` through chat requests, validated it in the chat API route, and required Ollama chat execution to use the selected model explicitly
-  - added clear chat-facing failure messages for missing or unavailable selected models instead of silently choosing another runtime model
+  - not started
 - known risks:
-  - selected-model persistence remains limited to browser session storage and does not survive a new browser session
-  - stale-model handling depends on the runtime model list being reachable when the runtime status UI refreshes
-  - chat failures now surface selection errors more directly, so users must choose a model before first send
+  - route validation may expose existing client-side assumptions that need small UI error-handling adjustments
+  - request hardening must not silently reintroduce runtime fallbacks or payload mutation
