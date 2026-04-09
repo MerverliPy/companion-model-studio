@@ -7,7 +7,10 @@ type ProgressSummaryProps = {
 };
 
 export function ProgressSummary({ summary, badges }: ProgressSummaryProps) {
-  const recentAchievements = badges.filter((badge) => badge.unlocked).slice(0, 2);
+  const recentAchievements = badges
+    .filter((badge) => badge.unlocked && badge.unlockedAt)
+    .sort((left, right) => (right.unlockedAt ?? '').localeCompare(left.unlockedAt ?? ''))
+    .slice(0, 3);
 
   return (
     <section style={{ display: 'grid', gap: '1rem' }}>
@@ -51,6 +54,9 @@ export function ProgressSummary({ summary, badges }: ProgressSummaryProps) {
                 <li key={badge.id}>
                   <strong>{badge.title}</strong>
                   <div>{badge.description}</div>
+                  <div style={{ color: '#4b5563', fontSize: '0.9rem' }}>
+                    Unlocked {new Date(badge.unlockedAt ?? '').toLocaleString()}
+                  </div>
                 </li>
               ))}
             </ul>
@@ -88,7 +94,12 @@ export function ProgressSummary({ summary, badges }: ProgressSummaryProps) {
                   <strong>{badge.title}</strong>
                   <span>{badge.unlocked ? 'Unlocked' : 'Locked'}</span>
                 </div>
-                <p style={{ marginBottom: 0 }}>{badge.description}</p>
+                <p style={{ marginBottom: 0.25, marginTop: '0.5rem' }}>{badge.description}</p>
+                {badge.unlockedAt ? (
+                  <p style={{ margin: 0, color: '#4b5563', fontSize: '0.9rem' }}>
+                    Earned {new Date(badge.unlockedAt).toLocaleString()}
+                  </p>
+                ) : null}
               </li>
             ))}
           </ul>
