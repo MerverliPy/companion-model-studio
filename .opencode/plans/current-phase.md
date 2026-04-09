@@ -5,13 +5,13 @@ Selected candidate id: none-eligible
 Status: blocked
 
 ## Goal
-Hold phase selection until a new unshipped candidate is added to `.opencode/backlog/candidates.yaml`.
+Unblock next-phase planning by recording that there is currently no eligible unshipped candidate available in `.opencode/backlog/candidates.yaml` after shipping `sqlite-prisma-foundation`.
 
 ## Why this phase is next
-- `chat-request-schema-hardening` is now complete and present in `.opencode/backlog/completed.yaml`.
-- Every candidate currently listed in `.opencode/backlog/candidates.yaml` is already present in the canonical completion ledger, so none can be re-selected.
-- The shipper recommended `sqlite-prisma-foundation`, but that id does not exist in `.opencode/backlog/candidates.yaml`, so selecting it would violate the backlog-selection rule.
-- Blocking here is the smallest safe action and avoids inventing unsupported scope.
+- `sqlite-prisma-foundation` is now shipped in the canonical completion ledger.
+- The canonical ledger now marks every candidate still present in `.opencode/backlog/candidates.yaml` as already complete.
+- The shipper recommended `server-backed-companion-draft` as the next candidate id, but that id is not present in `.opencode/backlog/candidates.yaml`, so it cannot be legally selected under the repo rules.
+- Planning must stop here rather than re-selecting a completed candidate.
 
 ## Primary files
 - `.opencode/plans/current-phase.md`
@@ -27,51 +27,55 @@ Hold phase selection until a new unshipped candidate is added to `.opencode/back
 - `docs/**`
 - `README.md`
 - `apps/**`
-- `packages/**`
-- `node_modules/**`
+- `package.json`
+- `pnpm-lock.yaml`
 
 ## Risk
-The main risk is selecting a completed id or inventing a new phase id that is not defined in the candidate backlog, which would break the canonical workflow.
+The main risk is accidentally re-selecting a candidate already listed in `.opencode/backlog/completed.yaml`, which would violate the canonical ledger rules.
 
 ## Rollback note
-Once a new eligible candidate exists in `.opencode/backlog/candidates.yaml`, replace this blocked plan with the next bounded phase selection.
+If backlog planning is updated later, replace this blocked plan with the newly selected eligible candidate phase.
 
 ## In scope
-- Confirm that no eligible unshipped candidate remains in the current backlog.
-- Record the blocked state in the active phase plan.
+- Record the current blocked planning state.
+- Make clear why no eligible candidate can be selected.
+- Preserve the canonical completion ledger as the source of truth.
 
 ## Out of scope
-- Any product implementation work.
-- Editing `.opencode/backlog/candidates.yaml` or `.opencode/backlog/completed.yaml`.
-- Re-selecting any completed candidate id.
-- Selecting `sqlite-prisma-foundation` before it exists in the candidate backlog.
+- Selecting any candidate already listed in `.opencode/backlog/completed.yaml`.
+- Editing `.opencode/backlog/candidates.yaml`.
+- Editing `.opencode/backlog/completed.yaml`.
+- Any product or implementation work in `apps/**`.
 
 ## Tasks
-- Verify candidate ids against the canonical completion ledger.
-- Record the blocked state because no eligible next phase exists.
+- Confirm the just-shipped phase is present in `.opencode/backlog/completed.yaml`.
+- Confirm there are no remaining unshipped candidate ids in `.opencode/backlog/candidates.yaml`.
+- Record the blocked planning state in this file without broadening scope.
 
 ## Validation command
-`none - blocked until a new unshipped candidate exists in .opencode/backlog/candidates.yaml`
+`none`
 
 ## Validation
-- BLOCKED: there is no eligible unshipped candidate to validate or implement.
+- BLOCKED: there is no eligible unshipped candidate id available to select from `.opencode/backlog/candidates.yaml`.
 - Evidence:
-  - `.opencode/backlog/completed.yaml` contains every id currently listed in `.opencode/backlog/candidates.yaml`.
-  - `sqlite-prisma-foundation` is not defined in `.opencode/backlog/candidates.yaml`.
+  - `sqlite-prisma-foundation` is now present in `.opencode/backlog/completed.yaml`
+  - all remaining ids in `.opencode/backlog/candidates.yaml` are already listed in `.opencode/backlog/completed.yaml`
+  - shipper recommended `server-backed-companion-draft`, but that id does not exist in `.opencode/backlog/candidates.yaml`
 
 ## Repair targets
-- none
+- add at least one new unshipped candidate id to `.opencode/backlog/candidates.yaml`
+- ensure the next candidate id is not already listed in `.opencode/backlog/completed.yaml`
+- then replace this blocked plan with a normal bounded implementation phase
 
 ## Acceptance criteria
-- The active phase plan states that no eligible unshipped candidate currently exists.
+- Current phase clearly states that no eligible candidate can be selected.
 - No completed candidate id is re-selected.
-- No unsupported candidate id is invented.
+- The reason for the blocked state points to the canonical ledger and missing next candidate definition.
 
 ## Completion summary
 - files changed:
   - `.opencode/plans/current-phase.md`
 - implementation summary:
-  - Recorded the workflow as blocked because all current backlog candidates are already marked complete in the canonical shipped ledger.
-  - Noted that the shipper-recommended follow-up `sqlite-prisma-foundation` cannot be selected until it is added to `.opencode/backlog/candidates.yaml`.
+  - recorded a blocked planning state because no eligible unshipped candidate remains in backlog candidates
 - known risks:
-  - Progress is blocked until the backlog is refreshed with a new eligible candidate id.
+  - planning cannot continue until backlog candidates are refreshed with a new unshipped id

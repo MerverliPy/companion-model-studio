@@ -1,0 +1,66 @@
+generator client {
+  provider = "prisma-client-js"
+}
+
+datasource db {
+  provider = "sqlite"
+  url      = env("DATABASE_URL")
+}
+
+enum ChatMessageRole {
+  user
+  assistant
+}
+
+model CompanionDraft {
+  id                  String         @id @default(cuid())
+  name                String
+  shortBio            String
+  personalityTemplate String
+  avatarTheme         String
+  skillPacksJson      String
+  savedAt             DateTime
+  createdAt           DateTime       @default(now())
+  updatedAt           DateTime       @updatedAt
+  lessonResults       LessonResult[]
+  chatSessions        ChatSession[]
+}
+
+model LessonResult {
+  id               String          @id @default(cuid())
+  lessonPackId     String
+  companionDraftId String?
+  companionName    String
+  attemptedAt      DateTime
+  score            Int
+  passed           Boolean
+  checksJson       String
+  summary          String
+  createdAt        DateTime        @default(now())
+  companionDraft   CompanionDraft? @relation(fields: [companionDraftId], references: [id], onDelete: SetNull)
+
+  @@index([companionDraftId, attemptedAt])
+}
+
+model ChatSession {
+  id               String          @id @default(cuid())
+  companionDraftId String?
+  updatedAt        DateTime
+  createdAt        DateTime        @default(now())
+  companionDraft   CompanionDraft? @relation(fields: [companionDraftId], references: [id], onDelete: SetNull)
+  messages         ChatMessage[]
+
+  @@index([companionDraftId, updatedAt])
+}
+
+model ChatMessage {
+  id        String          @id @default(cuid())
+  sessionId String
+  role      ChatMessageRole
+  content   String
+  createdAt DateTime
+  sequence  Int
+  session   ChatSession     @relation(fields: [sessionId], references: [id], onDelete: Cascade)
+
+  @@index([sessionId, sequence])
+}
