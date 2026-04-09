@@ -3,3 +3,4 @@ shipped_ids:
   - chat-workbench
   - local-model-connectivity
   - studio-shell-and-routing
+  - foundation-workspace-bootstrap

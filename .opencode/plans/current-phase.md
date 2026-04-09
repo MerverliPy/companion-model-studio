@@ -1,94 +1,83 @@
 # Current Phase
 
-Selected candidate id: studio-shell-and-routing
+Selected candidate id: foundation-workspace-bootstrap
 
 Status: complete
 
 ## Goal
-Add a shared studio shell in `apps/web` so the top-level Companion Model Studio navigation is available across the app, not only on the home page, while keeping route content and existing feature slices intact.
+Reconcile workflow state for `foundation-workspace-bootstrap` without reopening bootstrap implementation that already appears materially present in the repo, and set up validator/shipper to confirm and ledger that state safely.
 
 ## Why this phase is next
-- No new explicit user scope was provided, so selection falls back to the backlog rubric in `AGENTS.md`.
-- `chat-workbench` and `local-model-connectivity` are already in `.opencode/backlog/completed.yaml`, so they cannot be re-selected.
-- `foundation-workspace-bootstrap` appears materially complete in the repo already; if shipper confirms it was validated but never ledgered, shipper should reconcile that on the next validated ship rather than re-opening bootstrap work.
-- `studio-shell-and-routing` is the highest-priority remaining candidate with a clear, bounded implementation gap: the app has routes, but the studio shell navigation still lives only on the home page instead of a shared app shell.
-- This keeps scope to one module and avoids broadening into feature redesign or backlog-wide reconciliation.
+- The explicit user scope is `workflow-state-reconciliation`, so it takes precedence over normal backlog ordering.
+- `foundation-workspace-bootstrap` is the highest-priority candidate not yet listed in `.opencode/backlog/completed.yaml`.
+- The repo already contains the core bootstrap evidence called for by that candidate: root workspace manifests and an `apps/web` app scaffold.
+- This is the smallest safe reconciliation slice: one candidate, one repo-level validation command, and no feature or architecture expansion.
+- If validator confirms PASS, shipper should reconcile the missing ledger entry on the next validated ship instead of re-implementing bootstrap work.
 
 ## Primary files
-- `apps/web/app/layout.tsx`
-- `apps/web/app/page.tsx`
-- `apps/web/app/components/studio-shell.tsx`
+- `.opencode/plans/current-phase.md`
+- `package.json`
+- `pnpm-workspace.yaml`
+- `apps/web/package.json`
+- `apps/web/`
 
 ## Expected max files changed
-3
+1
 
 ## Forbidden paths
-- `node_modules/**`
-- `apps/web/.next/**`
+- `apps/web/app/**`
+- `apps/web/lib/**`
 - `packages/**`
 - `docs/**`
 - `.github/**`
-- `.opencode/backlog/**`
-- `apps/web/app/api/**`
-- `apps/web/lib/**`
-- `apps/web/app/create/**`
-- `apps/web/app/lessons/**`
-- `apps/web/app/progress/**`
-- `apps/web/app/chat/**`
+- `node_modules/**`
+- `apps/web/.next/**`
+- `.opencode/backlog/candidates.yaml`
+- `.opencode/backlog/completed.yaml`
 
 ## Risk
-The main risk is scope drift from a shared shell into a visual redesign of all routes. A secondary risk is accidentally moving feature-specific copy or logic while trying to centralize navigation.
+The main risk is falsely treating stale backlog state as missing implementation and reopening already-satisfied bootstrap work. A second risk is scope drift into full backlog reconciliation across multiple candidates.
 
 ## Rollback note
-If this phase must be reverted, remove the shared shell component, restore `apps/web/app/layout.tsx` to a plain wrapper, and return the home page to owning the only navigation markup.
+If this reconciliation phase is superseded by a new implementation request, replace this plan with the next bounded product phase and keep canonical ledger edits reserved for shipper only.
 
 ## In scope
-- Add a shared studio shell wrapper for the web app.
-- Move top-level navigation into the shared shell so it appears on app routes consistently.
-- Keep the home page content focused on the home route instead of duplicating shell responsibilities.
-- Preserve existing route paths and route-level feature content.
+- Reconcile planning state for `foundation-workspace-bootstrap` only.
+- Use existing repo evidence to frame a validator-ready bootstrap check.
+- Make shipper follow-up explicit if validator confirms the candidate is already satisfied.
 
 ## Out of scope
-- Any changes to runtime connectivity, companion creation logic, lessons, progress, or chat behavior.
-- Styling redesign beyond the minimum needed to present a coherent shared shell.
-- New routes, route renames, or feature refactors.
-- Ledger updates to `.opencode/backlog/completed.yaml`.
+- Implementing new product behavior or redesigning the workspace.
+- Reconciling any additional stale candidate ids in this phase.
+- Editing `.opencode/backlog/completed.yaml` before validator PASS and shipper handoff.
+- Any refactor of `apps/web` routes, APIs, or feature modules.
 
 ## Tasks
-- Add a reusable studio shell component with the existing top-level navigation links.
-- Update `apps/web/app/layout.tsx` to render the shared shell around route content.
-- Trim `apps/web/app/page.tsx` so it no longer owns duplicated shell navigation markup.
+- Treat `foundation-workspace-bootstrap` as the only candidate under reconciliation in this phase.
+- Do not modify product code as part of this phase unless a later validator FAIL identifies a concrete bootstrap gap.
+- Hand validator a repo-level check that confirms whether existing workspace artifacts already satisfy bootstrap acceptance.
+- If validator PASSes, hand shipper an explicit instruction to append `foundation-workspace-bootstrap` exactly once to `.opencode/backlog/completed.yaml` on the next validated ship.
 
 ## Validation command
-`pnpm --filter web validate`
+`pnpm validate:repo`
 
 ## Validation
-- PASS: `pnpm --filter web validate` succeeded; `typecheck`, `build`, and `smoke` all passed.
-- Checked files: `apps/web/app/layout.tsx`, `apps/web/app/page.tsx`, `apps/web/app/components/studio-shell.tsx`, plus route presence in `apps/web/app/create/page.tsx`, `apps/web/app/lessons/page.tsx`, `apps/web/app/progress/page.tsx`, `apps/web/app/chat/page.tsx`.
-- Acceptance criteria met: shared shell wraps the app, primary navigation is available across routes, Create/Lessons/Progress/Chat remain reachable, and the phase stayed within shell/routing scope.
-- Scope check: implementation changes stayed within the 3 planned web files; only this workflow metadata file was additionally updated.
-- Generated artifact check passed: no tracked `node_modules` or `apps/web/.next` files were found.
+- PASS: `pnpm validate:repo` succeeded; `repo:doctor` passed; `apps/web` typecheck, build, and smoke all passed.
+- PASS evidence: root workspace manifests are present, `apps/web` exists, and no new bootstrap files were needed.
+- PASS evidence: git status during validation showed only `.opencode/plans/current-phase.md` modified; no generated artifacts or forbidden-path changes were present.
+- On PASS, shipper should reconcile the missing ledger entry instead of reopening bootstrap implementation.
 
 ## Repair targets
 - none
 
 ## Acceptance criteria
-- The app shows a shared Companion Model Studio shell.
-- Top-level navigation exists across the app, not just on the home page.
-- Existing Create, Lessons, Progress, and Chat routes remain reachable through that shared navigation.
-- The phase stays bounded to shell and routing structure only.
-- `pnpm --filter web validate` passes.
+- `foundation-workspace-bootstrap` is selected without re-selecting any id already present in `.opencode/backlog/completed.yaml`.
+- The phase stays bounded to workflow-state reconciliation for this single candidate.
+- `pnpm validate:repo` is the defined validation command.
+- The plan explicitly reserves `.opencode/backlog/completed.yaml` edits for shipper after validator PASS.
+- No new product implementation scope is introduced in this phase.
 
 ## Completion summary
-- Files changed:
-  - `.opencode/plans/current-phase.md`
-  - `apps/web/app/layout.tsx`
-  - `apps/web/app/page.tsx`
-  - `apps/web/app/components/studio-shell.tsx`
-- Implementation summary:
-  - Added a reusable `StudioShell` component with the existing top-level navigation links.
-  - Updated the root web layout to render the shared studio shell around all route content.
-  - Removed duplicated shell navigation from the home page so it keeps only route-specific content.
-- Known risks:
-  - The shared shell keeps navigation simple and does not mark the active route.
-  - Route pages that already define their own top-level landmarks remain unchanged by this phase.
+- Files changed: `.opencode/plans/current-phase.md`
+- Implementation summary: updated the phase record for workflow-state reconciliation only; confirmed existing bootstrap evidence in `package.json`, `pnpm-workspace.yaml`, and `apps/web/package.json`/`apps/web`; preserved shipper-only ledger follow-up for `foundation-workspace-bootstrap` after validator confirmation.
+- Known risks: repo evidence may still hide a validator-detected bootstrap gap, but no new bootstrap/product implementation was introduced in this phase.
