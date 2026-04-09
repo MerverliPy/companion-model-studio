@@ -4,6 +4,7 @@ import { useMemo, useState, type FormEvent } from 'react';
 
 import { CompanionCardPreview } from './companion-card-preview';
 import { CompanionReview } from './companion-review';
+import { SkillPackPicker } from './skill-pack-picker';
 import {
   avatarThemes,
   hasCompanionErrors,
@@ -190,6 +191,11 @@ export function CompanionForm() {
               <p id="companion-avatar-theme-error">{errors.avatarTheme}</p>
             ) : null}
           </div>
+
+          <SkillPackPicker
+            selectedSkillPacks={values.skillPacks}
+            onChange={(nextSkillPacks) => updateField('skillPacks', nextSkillPacks)}
+          />
 
           {step === 'details' ? (
             <button type="button" onClick={reviewCurrentInputs}>

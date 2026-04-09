@@ -6,8 +6,8 @@ export default function CreatePage() {
       <p>Companion creation</p>
       <h1>Create your first companion draft.</h1>
       <p>
-        Capture the core profile now: name, short bio, personality template, and avatar
-        theme.
+        Capture the core profile now: name, short bio, personality template, avatar
+        theme, and starting skill packs.
       </p>
       <CompanionForm />
     </main>

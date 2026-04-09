@@ -1,34 +1,33 @@
 # Current Phase
 
-Selected candidate id: skill-pack-selection
+Selected candidate id: lessons-and-evals
 
 Status: pending
 
 ## Goal
-Add bounded skill-pack selection to the existing companion creation flow so a user can choose one or more skill packs, keep that selection in the draft record, and see the selected skills in the review step without expanding into lessons, chat, or runtime work.
+Implement a bounded first lesson/eval loop so a user can run one built-in lesson against a saved companion draft, produce a score/result object, and view the stored latest result in the lessons flow without expanding into progress, badges, chat, or multi-pack systems.
 
 ## Why this phase is next
-- There is no explicit new user scope overriding backlog order.
-- `.opencode/backlog/completed.yaml` is canonical, and the higher-priority candidates in `candidates.yaml` are already complete.
-- `skill-pack-selection` is the next unshipped candidate in the same `web` module and is a direct follow-up to the completed `companion-creation-wizard` phase.
-- The existing create flow already carries a bounded `skillPacks` field, which makes this the smallest safe next phase with clear validation.
+- `skill-pack-selection` is now shipped in `.opencode/backlog/completed.yaml`, so the active phase must move to the next unshipped candidate.
+- `lessons-and-evals` is the highest-priority remaining candidate in `.opencode/backlog/candidates.yaml`.
+- The product spec lists lessons/evals as the next core loop after companion creation and skill selection.
+- This phase is the smallest safe dependency before any broader progress or badge work because it establishes the stored lesson result those follow-ups depend on.
 
 ## Primary files
-- `apps/web/app/components/companion-form.tsx`
-- `apps/web/app/components/companion-review.tsx`
-- `apps/web/lib/companions/skill-packs.ts`
-- `apps/web/lib/companions/companion-schema.ts`
+- `apps/web/app/lessons/page.tsx`
+- `apps/web/app/components/lesson-attempt-panel.tsx`
+- `apps/web/lib/evals/lesson-flow.ts`
 - `apps/web/lib/companions/draft-store.ts`
+- `apps/web/lib/companions/companion-schema.ts`
 
 ## Expected max files changed
 5
 
 ## Forbidden paths
 - `apps/web/app/chat/**`
-- `apps/web/app/lessons/**`
 - `apps/web/app/progress/**`
 - `apps/web/app/api/**`
-- `apps/web/app/create/page.tsx`
+- `apps/web/app/create/**`
 - `.opencode/backlog/**`
 - `.opencode/agents/**`
 - `.opencode/commands/**`
@@ -38,32 +37,32 @@ Add bounded skill-pack selection to the existing companion creation flow so a us
 - `apps/web/.next/**`
 
 ## Risk
-The main risk is turning a small selection phase into a broader redesign of companion configuration, persistence, or create-flow navigation.
+The main risk is scope drift from one bounded lesson/eval into a broader lesson catalog, history system, or cross-page training flow.
 
-A second risk is introducing skill-pack-specific behavior beyond selection and review display, which belongs to later product phases.
+A second risk is leaking this phase into progress or badge behavior before the lesson result contract is kept stable and minimal.
 
 ## Rollback note
-If this phase becomes unstable, revert the skill-pack UI and validation changes and restore the create flow to the previously validated core identity-only behavior.
+If this phase becomes unstable, revert the lessons page, lesson attempt panel, and lesson-flow changes so the app returns to its prior state without partial lesson-result storage behavior.
 
 ## In scope
-- Add UI for selecting one or more skill packs in the existing companion form.
-- Validate the skill-pack selection against the bounded defined options.
-- Keep selected skill packs in the saved draft companion record.
-- Show selected skill packs in the existing review step.
+- Define or refine one built-in lesson pack for the first eval loop.
+- Run the lesson against the saved companion draft and produce a deterministic result object.
+- Store the latest lesson result using the current bounded local approach.
+- Display the saved result clearly in the lessons UI.
 
 ## Out of scope
-- New skill-pack content systems beyond the current bounded definitions.
-- Lessons, evals, badges, or progress behavior.
-- Chat runtime behavior or model connectivity changes.
-- Create-flow step redesign beyond what is required to display and save skill-pack selections.
-- Workflow, backlog, or shipped-ledger edits.
+- Progress dashboard changes or badge unlock UX.
+- Chat behavior or runtime connectivity changes.
+- Multiple lesson packs, lesson history, or catalog redesign.
+- Create-flow redesign beyond what is strictly required for reading the saved draft.
+- Workflow/backlog/ledger edits.
 
 ## Tasks
-- Review the current create flow and use the existing draft shape to add bounded skill-pack selection.
-- Implement one-or-more skill-pack selection UI in `companion-form.tsx`.
-- Ensure submitted skill-pack values are constrained to the allowed definitions in `skill-packs.ts` and `companion-schema.ts`.
-- Display selected skill packs in `companion-review.tsx`.
-- Keep all changes inside the listed primary files and within the 5-file limit.
+- Review the saved companion draft contract and keep the lesson phase aligned with existing draft data.
+- Implement or tighten one built-in lesson pack and deterministic evaluation logic.
+- Persist the latest lesson result through the existing bounded local storage path.
+- Update the lessons UI so the user can run the lesson and see the stored result.
+- Keep all changes bounded to the listed files and avoid progress or badge expansion.
 
 ## Validation command
 `pnpm --filter web validate`
@@ -75,9 +74,9 @@ If this phase becomes unstable, revert the skill-pack UI and validation changes 
 - none
 
 ## Acceptance criteria
-- User can select one or more skill packs in the companion creation flow.
-- Selected skill packs persist when the draft companion is saved.
-- Selected skill packs appear in the review step.
+- At least one lesson pack exists.
+- Running the lesson produces a score/result object.
+- The latest lesson result can be stored and displayed.
 - The phase stays within the expected max file count and forbidden paths remain untouched.
 - `pnpm --filter web validate` passes.
 
