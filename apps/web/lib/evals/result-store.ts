@@ -1,28 +1,32 @@
 import type { LessonAttemptResult } from './eval-runner';
 
-const resultStorageKey = 'companion-model-studio:lesson-results';
+async function parseResultResponse(response: Response) {
+  const body = (await response.json()) as { error?: string; results?: LessonAttemptResult[] };
 
-export function saveLessonResult(result: LessonAttemptResult) {
-  const existingResults = loadLessonResults();
-  const nextResults = [result, ...existingResults].slice(0, 5);
+  if (!response.ok || !body.results) {
+    throw new Error(body.error ?? 'Unable to load lesson results.');
+  }
 
-  window.localStorage.setItem(resultStorageKey, JSON.stringify(nextResults));
-
-  return nextResults;
+  return body.results;
 }
 
-export function loadLessonResults(): LessonAttemptResult[] {
-  const stored = window.localStorage.getItem(resultStorageKey);
+export async function saveLessonResult(result: LessonAttemptResult) {
+  const response = await fetch('/api/lesson-results', {
+    method: 'POST',
+    headers: {
+      'Content-Type': 'application/json',
+    },
+    body: JSON.stringify(result),
+  });
 
-  if (!stored) {
-    return [];
-  }
+  return parseResultResponse(response);
+}
 
-  try {
-    const parsed = JSON.parse(stored) as LessonAttemptResult[];
+export async function loadLessonResults(): Promise<LessonAttemptResult[]> {
+  const response = await fetch('/api/lesson-results', {
+    method: 'GET',
+    cache: 'no-store',
+  });
 
-    return Array.isArray(parsed) ? parsed : [];
-  } catch {
-    return [];
-  }
+  return parseResultResponse(response);
 }

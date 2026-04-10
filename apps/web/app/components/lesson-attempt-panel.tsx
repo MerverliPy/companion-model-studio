@@ -23,10 +23,13 @@ export function LessonAttemptPanel() {
     const draft = loadCompanionDraft();
 
     setDraftName(draft?.name ?? null);
-    setResults(loadLessonResults());
+
+    void loadLessonResults()
+      .then((storedResults) => setResults(storedResults))
+      .catch(() => setError('Unable to load saved lesson results right now.'));
   }, []);
 
-  function runLessonAttempt() {
+  async function runLessonAttempt() {
     const draft = loadCompanionDraft();
 
     if (!draft) {
@@ -37,7 +40,16 @@ export function LessonAttemptPanel() {
 
     const nextResult = runLessonEvaluation(builtInLessonPack, draft);
 
-    const nextResults = saveLessonResult(nextResult);
+    let nextResults: LessonAttemptResult[];
+
+    try {
+      nextResults = await saveLessonResult(nextResult);
+    } catch {
+      setDraftName(draft.name);
+      setError('Unable to save this lesson result right now.');
+      return;
+    }
+
     setDraftName(draft.name);
     setResults(nextResults);
     setError('');

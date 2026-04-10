@@ -12,3 +12,4 @@ shipped_ids:
   - runtime-model-selection-e2e
   - chat-request-schema-hardening
   - sqlite-prisma-foundation
+  - server-backed-lesson-results

@@ -12,7 +12,7 @@ export default function ProgressPage() {
   const [results, setResults] = useState<LessonAttemptResult[]>([]);
 
   useEffect(() => {
-    setResults(loadLessonResults());
+    void loadLessonResults().then((storedResults) => setResults(storedResults));
   }, []);
 
   const summary = useMemo(() => deriveProgressSummary(results), [results]);

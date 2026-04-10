@@ -1,104 +1,75 @@
 # Current Phase
 
-Selected candidate id: server-backed-lesson-results
+Selected candidate id: none-available
 
-Status: pending
+Status: blocked
 
 ## Goal
-Cut lesson result persistence over from browser localStorage to the shipped SQLite/Prisma foundation so lesson attempts and the progress view read the same server-backed result history.
+Select the next bounded unshipped phase once a new eligible candidate exists in `.opencode/backlog/candidates.yaml`.
 
 ## Why this phase is next
-- There is explicit user scope to queue `server-backed-lesson-results` as the next bounded phase.
-- `sqlite-prisma-foundation` is now shipped, so the repo has the persistence base needed for a focused lesson-result cutover.
-- This is a bounded web-only persistence phase that updates lesson result reads and writes without bundling chat-session migration into the same change.
-- Lesson results directly drive progress and recent achievements, so this phase has clear user-visible value with stable validation.
+- `server-backed-lesson-results` is now complete and listed in the canonical shipped ledger.
+- The shipper recommendation `runtime-model-selection-e2e` must be refused because it is already listed in `.opencode/backlog/completed.yaml`.
+- No remaining candidate in `.opencode/backlog/candidates.yaml` is eligible for selection after applying the canonical completion ledger.
+- Workflow cannot safely advance until a new unshipped bounded candidate is added.
 
 ## Primary files
-- `apps/web/app/api/lesson-results/route.ts`
-- `apps/web/lib/evals/result-store.ts`
-- `apps/web/lib/evals/result-repository.ts`
-- `apps/web/app/components/lesson-attempt-panel.tsx`
-- `apps/web/app/progress/page.tsx`
+- `.opencode/backlog/candidates.yaml`
+- `.opencode/backlog/completed.yaml`
+- `.opencode/plans/current-phase.md`
 
 ## Expected max files changed
-5
+1
 
 ## Forbidden paths
-- `.opencode/backlog/**`
-- `.opencode/agents/**`
-- `.opencode/commands/**`
+- `apps/**`
 - `.github/**`
 - `docs/**`
 - `README.md`
-- `apps/web/prisma/**`
-- `apps/web/app/create/**`
-- `apps/web/app/chat/**`
-- `apps/web/app/api/chat/route.ts`
 - `node_modules/**`
-- `apps/web/.next/**`
 
 ## Risk
-The main risk is partially migrating lesson-result reads and writes so the lesson attempt flow, progress page, and badge derivation disagree about which result history is canonical.
-
-A second risk is scope drift into chat-session migration or broader eval redesign before the bounded result-history cutover is complete.
+The main risk is accidentally re-selecting a shipped candidate because stale backlog entries remain in `.opencode/backlog/candidates.yaml`.
 
 ## Rollback note
-If this phase becomes unstable, revert the lesson-result API and repository cutover changes and restore the prior localStorage-backed result flow, keeping all rollback limited to the listed files.
+If a new eligible candidate is added, replace this blocked plan with a fresh bounded phase plan and keep the completion ledger unchanged.
 
 ## In scope
-- Add a server-backed lesson-results route.
-- Add a small repository layer for lesson-result reads and writes using Prisma.
-- Update the lesson attempt flow to save results through the server-backed path.
-- Update the progress page to load persisted result history from the server-backed repository.
-- Remove browser localStorage as the canonical lesson-result source.
+- Confirm the just-shipped phase is recorded in the canonical completion ledger.
+- Refuse any recommended next candidate already present in `.opencode/backlog/completed.yaml`.
+- Block phase selection until a new eligible candidate exists.
 
 ## Out of scope
-- Companion draft persistence changes.
-- Chat-session persistence migration.
-- New lesson-pack design or eval-rule redesign.
-- Broader progress UI redesign beyond what is required to consume server-backed results.
-- Test-framework introduction or CI workflow changes.
-- Docs, backlog, or workflow artifact edits during implementation.
+- Implementing any new product change.
+- Editing shipped candidate entries in the canonical completion ledger.
+- Re-selecting any candidate already marked complete.
+- Inventing a new candidate outside the backlog.
 
 ## Tasks
-- Review the existing lesson-result load/save flow and identify all localStorage dependencies.
-- Add `apps/web/lib/evals/result-repository.ts` backed by Prisma.
-- Add `apps/web/app/api/lesson-results/route.ts` for bounded lesson-result reads and writes.
-- Update `apps/web/lib/evals/result-store.ts` so it no longer treats localStorage as canonical storage.
-- Update `apps/web/app/components/lesson-attempt-panel.tsx` to save through the server-backed path.
-- Update `apps/web/app/progress/page.tsx` to load persisted result history from the server-backed repository.
-- Keep all changes bounded to the listed files.
+- Verify the current phase candidate id is present in `.opencode/backlog/completed.yaml`.
+- Check all candidate ids in `.opencode/backlog/candidates.yaml` against the canonical completion ledger.
+- Refuse any already-complete candidate ids.
+- Leave the workflow blocked until a new unshipped bounded candidate is available.
 
 ## Validation command
-`pnpm --filter web validate`
+`none until a new eligible candidate exists`
 
 ## Validation
-- PENDING: validator must run `pnpm --filter web validate`.
-- Expected validator checks:
-  - typecheck passes
-  - Next.js build passes
-  - web smoke passes
-- Validator should also confirm:
-  - running a lesson writes through the server-backed persistence path
-  - progress resolves the same persisted result history after reload
-  - localStorage is no longer the canonical lesson-result source
-  - no chat-session migration work was silently included
+- Blocked: there is no eligible next candidate to validate or implement.
 
 ## Repair targets
-- none
+- Add at least one new bounded unshipped candidate to `.opencode/backlog/candidates.yaml`.
 
 ## Acceptance criteria
-- Running a lesson writes a result row to SQLite via Prisma.
-- Progress reads persisted lesson history from the server-backed repository.
-- Result ordering and recent-achievement derivation remain stable after reload.
-- localStorage is no longer the canonical lesson-result source.
-- `pnpm --filter web validate` passes.
+- `server-backed-lesson-results` remains listed in `.opencode/backlog/completed.yaml`.
+- No candidate already listed in `.opencode/backlog/completed.yaml` is selected again.
+- The plan remains blocked until a new unshipped candidate is available.
 
 ## Completion summary
 - files changed:
-  - none yet
+  - `.opencode/plans/current-phase.md`
 - implementation summary:
-  - not started
+  - replaced the shipped phase plan with a blocked placeholder because no eligible next candidate remains in the backlog
+  - refused the shipper's recommended next candidate because `runtime-model-selection-e2e` is already complete in the canonical ledger
 - known risks:
-  - stale browser-local result data may still exist and must not silently override the server-backed history
-  - result ordering must remain newest-first so progress and achievement derivation stay stable
+  - workflow remains blocked until backlog maintenance adds a new eligible candidate
