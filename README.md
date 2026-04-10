@@ -1,14 +1,22 @@
 # Companion Model Studio
 
-Local-first platform for creating, training, and improving a user-owned AI companion.
+Local-first studio for building and chatting with a user-owned AI companion on your own machine.
 
-## V1
-- Create a companion
-- Pick avatar, template, and skill packs
-- Connect to a local model runtime
-- Run lessons and evals
-- Track progress and badges
-- Chat locally
+## Shipped in this repo today
+- Create and save one local companion draft with a name, short bio, personality template, avatar theme, and starter skill packs.
+- Check local Ollama runtime health, list local models, and choose a model for chat.
+- Run the built-in lesson eval against the saved draft.
+- Review progress, summary metrics, and deterministic badge unlocks derived from saved lesson results.
+- Chat locally with the saved draft as context and persist the active chat session.
+
+## Local persistence
+- Companion draft and selected runtime model are stored in the browser for the current local user.
+- Lesson results and chat sessions are persisted in SQLite through Prisma-backed Next.js API routes.
+- The app is intentionally local-only and single-user in this phase; there is no cloud sync or multi-user auth.
+
+## Runtime
+- Primary runtime target: Ollama on `http://127.0.0.1:11434`
+- Later optional runtime direction: `llama.cpp`
 
 ## Development workflow
 This repo uses:

@@ -15,3 +15,4 @@ shipped_ids:
   - server-backed-lesson-results
   - server-backed-chat-session
   - behavior-tests-and-ci
+  - docs-reality-alignment
