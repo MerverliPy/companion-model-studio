@@ -194,3 +194,22 @@ candidates:
       - malformed payloads return stable 400 responses with useful error details
       - message role count length and selectedModel invariants are enforced before runtime dispatch
       - chat ui handles schema rejection without corrupting the local session
+
+  - id: server-backed-lesson-results
+    module: web
+    priority: 8
+    drivers:
+      - move lesson result persistence out of browser localStorage
+      - make lessons and progress read from the same sqlite-backed result history
+    files:
+      - apps/web/app/api/lesson-results/route.ts
+      - apps/web/lib/evals/result-store.ts
+      - apps/web/lib/evals/result-repository.ts
+      - apps/web/app/components/lesson-attempt-panel.tsx
+      - apps/web/app/progress/page.tsx
+    validation: run pnpm --filter web validate
+    acceptance:
+      - running a lesson writes a result row to sqlite via prisma
+      - progress reads persisted lesson history from the server-backed repository
+      - result ordering and recent-achievement derivation remain stable after reload
+      - localStorage is no longer the canonical lesson result source
