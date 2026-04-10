@@ -31,9 +31,9 @@ run_step() {
 run_step toolchain-env bash -lc 'which node && node -v && which corepack && corepack --version && corepack pnpm --version'
 run_step install run_pnpm install --frozen-lockfile
 run_step repo-doctor run_pnpm repo:doctor
-run_step web-resolve-next run_pnpm --filter web exec node -p "require.resolve('\''next/package.json'\'')"
-run_step web-resolve-react run_pnpm --filter web exec node -p "require.resolve('\''react/package.json'\'')"
-run_step web-resolve-react-dom run_pnpm --filter web exec node -p "require.resolve('\''react-dom/package.json'\'')"
+run_step web-resolve-next run_pnpm --filter web exec node -p "require.resolve('next/package.json')"
+run_step web-resolve-react run_pnpm --filter web exec node -p "require.resolve('react/package.json')"
+run_step web-resolve-react-dom run_pnpm --filter web exec node -p "require.resolve('react-dom/package.json')"
 run_step web-dependency-list run_pnpm --filter web list next react react-dom --depth 0
 run_step web-validate run_pnpm --filter web validate
 
