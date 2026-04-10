@@ -4,11 +4,7 @@ set -euo pipefail
 mkdir -p ci-logs
 
 run_pnpm() {
-  if command -v pnpm >/dev/null 2>&1; then
-    pnpm "$@"
-  else
-    corepack pnpm "$@"
-  fi
+  corepack pnpm "$@"
 }
 
 run_step() {
@@ -22,14 +18,18 @@ run_step() {
     echo "PWD: $(pwd)"
     echo "DATE: $(date -u +"%Y-%m-%dT%H:%M:%SZ")"
     echo "PATH: $PATH"
-    echo "PNPM_BIN: $(command -v pnpm || echo 'not-found')"
+    echo "NODE_BIN: $(command -v node || echo 'not-found')"
+    echo "NODE_VERSION: $(node -v 2>/dev/null || echo 'node-unavailable')"
     echo "COREPACK_BIN: $(command -v corepack || echo 'not-found')"
+    echo "COREPACK_VERSION: $(corepack --version 2>/dev/null || echo 'corepack-unavailable')"
     echo "CMD: $*"
     echo
     "$@"
   } 2>&1 | tee "ci-logs/${name}.log"
 }
 
+run_step toolchain-env bash -lc 'which node && node -v && which corepack && corepack --version && corepack pnpm --version'
+run_step install run_pnpm install --frozen-lockfile
 run_step repo-doctor run_pnpm repo:doctor
 run_step web-resolve-next run_pnpm --filter web exec node -p "require.resolve('next/package.json')"
 run_step web-resolve-react run_pnpm --filter web exec node -p "require.resolve('react/package.json')"

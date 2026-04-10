@@ -14,11 +14,6 @@ jobs:
       - name: Checkout
         uses: actions/checkout@v4
 
-      - name: Setup pnpm
-        uses: pnpm/action-setup@v4
-        with:
-          version: 10
-
       - name: Setup Node
         uses: actions/setup-node@v4
         with:
@@ -29,27 +24,36 @@ jobs:
       - name: Enable Corepack
         run: corepack enable
 
+      - name: Toolchain diagnostics
+        run: |
+          echo "PATH=$PATH"
+          which node
+          node -v
+          which corepack
+          corepack --version
+          corepack pnpm --version
+
       - name: Install dependencies
-        run: pnpm install --frozen-lockfile
+        run: corepack pnpm install --frozen-lockfile
 
       - name: Verify web framework resolution
         run: |
-          pnpm --filter web exec node -p "require.resolve('next/package.json')"
-          pnpm --filter web exec node -p "require.resolve('react/package.json')"
-          pnpm --filter web exec node -p "require.resolve('react-dom/package.json')"
-          pnpm --filter web list next react react-dom --depth 0
+          corepack pnpm --filter web exec node -p "require.resolve('next/package.json')"
+          corepack pnpm --filter web exec node -p "require.resolve('react/package.json')"
+          corepack pnpm --filter web exec node -p "require.resolve('react-dom/package.json')"
+          corepack pnpm --filter web list next react react-dom --depth 0
 
       - name: Repo doctor
-        run: pnpm repo:doctor
+        run: corepack pnpm repo:doctor
 
       - name: Web typecheck
-        run: pnpm --filter web typecheck
+        run: corepack pnpm --filter web typecheck
 
       - name: Web build
-        run: pnpm --filter web build
+        run: corepack pnpm --filter web build
 
       - name: Web smoke
-        run: pnpm --filter web smoke
+        run: corepack pnpm --filter web smoke
 
       - name: Write bundled CI logs
         if: always()
