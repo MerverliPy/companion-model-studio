@@ -14,3 +14,4 @@ shipped_ids:
   - sqlite-prisma-foundation
   - server-backed-lesson-results
   - server-backed-chat-session
+  - behavior-tests-and-ci

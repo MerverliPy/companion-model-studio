@@ -1,103 +1,73 @@
 # Current Phase
 
-Selected candidate id: behavior-tests-and-ci
+Selected candidate id: none-eligible
 
-Status: pending
+Status: blocked
 
 ## Goal
-Add bounded behavior-level test coverage for the highest-risk shipped flows and wire those tests into the stable `apps/web` validation path so confidence no longer depends only on typecheck, build, and file-existence smoke checks.
+Record that next-phase selection is blocked because every candidate currently listed in `.opencode/backlog/candidates.yaml` is already shipped in `.opencode/backlog/completed.yaml`.
 
 ## Why this phase is next
-- There is explicit user scope to continue the audited follow-up chain after the shipped persistence and CI-fix work.
-- The app now validates cleanly, so the next smallest safe step is to add real behavior coverage for the highest-risk shipped surfaces rather than continuing with ad hoc manual verification.
-- This phase stays web-scoped and improves confidence in already-shipped behavior without reopening persistence schema work or broader docs alignment.
-- Completing this phase creates a stronger base for the final follow-up phase: `docs-reality-alignment`.
+- The user explicitly asked for the next phase.
+- The canonical completion ledger marks every listed candidate as complete, so none can be re-selected.
+- The smallest safe action is to block selection rather than invent uncataloged work or re-open shipped work.
+- A backlog refresh is required before builder can receive another bounded implementation phase.
 
 ## Primary files
-- `apps/web/package.json`
-- `apps/web/vitest.config.ts`
-- `apps/web/app/api/chat/route.test.ts`
-- `apps/web/app/components/chat-workbench.test.tsx`
-- `apps/web/lib/studio-behavior.test.ts`
+- `.opencode/backlog/candidates.yaml`
+- `.opencode/backlog/completed.yaml`
+- `.opencode/plans/current-phase.md`
 
 ## Expected max files changed
-5
+1
 
 ## Forbidden paths
-- `.opencode/backlog/**`
-- `.opencode/agents/**`
-- `.opencode/commands/**`
+- `apps/**`
+- `packages/**`
 - `.github/**`
 - `docs/**`
 - `README.md`
-- `apps/web/prisma/**`
-- `apps/web/app/create/**`
-- `apps/web/app/lessons/**`
-- `apps/web/app/progress/**`
-- `apps/web/app/chat/page.tsx`
-- `node_modules/**`
-- `apps/web/.next/**`
+- `AGENTS.md`
+- `.opencode/backlog/candidates.yaml`
+- `.opencode/backlog/completed.yaml`
 
 ## Risk
-The main risk is introducing an oversized test harness or broad refactors instead of adding only the bounded test coverage needed for the highest-risk shipped behaviors.
-
-A second risk is weakening the stable validation path by adding flaky or environment-sensitive tests that do not fit the local-first web app surface.
+The main risk is mistakenly re-selecting shipped work because `candidates.yaml` is stale relative to the canonical completion ledger.
 
 ## Rollback note
-If this phase becomes unstable, revert the test harness and validation-script changes and restore the prior web validation path, keeping all rollback limited to the listed files.
+Rollback is limited to restoring the prior `.opencode/plans/current-phase.md` if backlog maintenance happens separately.
 
 ## In scope
-- Add a small bounded test setup for `apps/web`.
-- Add behavior tests for the chat request boundary.
-- Add UI coverage for the selected-model chat flow.
-- Add deterministic tests for persisted lesson/progress derivation behavior.
-- Wire the tests into `pnpm --filter web validate`.
+- Compare current candidate ids against the canonical completion ledger.
+- Record blocked status for phase selection.
+- State the exact prerequisite for resuming implementation planning.
 
 ## Out of scope
-- New product features.
-- Persistence schema changes.
-- New API routes beyond what tests need to exercise current behavior.
-- Broad CI workflow redesign.
-- Docs, backlog, or workflow artifact edits.
+- Product implementation.
+- Repair work.
+- Editing backlog candidates or the completion ledger.
+- Creating new uncataloged candidate ids.
 
 ## Tasks
-- Add a minimal test runner configuration for `apps/web`.
-- Update `apps/web/package.json` so the stable `validate` script runs tests before build and smoke.
-- Add a route test for `/api/chat` covering schema rejection and selected-model dispatch behavior.
-- Add a UI test for the chat workbench covering the selected-model flow.
-- Add a deterministic behavior test covering persisted lesson/progress derivation.
-- Keep all changes bounded to the listed files.
+- Confirm that no candidate id in `.opencode/backlog/candidates.yaml` remains unshipped.
+- Mark the current phase as blocked.
+- Require backlog refresh before the next implementation phase is selected.
 
 ## Validation command
-`pnpm --filter web validate`
+`Not applicable — backlog refresh required before an implementation validation command can be assigned.`
 
 ## Validation
-- PENDING: validator must run `pnpm --filter web validate`.
-- Expected validator checks:
-  - tests pass
-  - typecheck passes
-  - Next.js build passes
-  - web smoke passes
-- Validator should also confirm:
-  - tests are behavior-focused rather than file-existence checks
-  - chat route coverage includes invalid-request rejection and selected-model handling
-  - progress-related coverage is deterministic and not dependent on ambient local state
+- PASS: no candidate from `.opencode/backlog/candidates.yaml` was re-selected if it already appears in `.opencode/backlog/completed.yaml`.
+- PASS: `.opencode/plans/current-phase.md` records `Status: blocked` and explains why selection cannot continue.
+- PASS: no files outside `.opencode/plans/current-phase.md` were changed.
 
 ## Repair targets
 - none
 
 ## Acceptance criteria
-- `pnpm --filter web validate` runs tests before build and smoke.
-- Chat route tests cover schema rejection and selected-model dispatch.
-- Model-selection flow has UI coverage.
-- Persisted lesson/progress derivation has deterministic test coverage.
-- `pnpm --filter web validate` passes.
+- No completed candidate id is re-selected.
+- The current phase clearly states that selection is blocked because no eligible unshipped candidates remain.
+- The required next action is backlog refresh, not implementation.
 
 ## Completion summary
-- files changed:
-  - none yet
-- implementation summary:
-  - not started
-- known risks:
-  - test setup must stay small and deterministic
-  - validation should not become flaky or dependent on external runtime state
+- blocked pending backlog refresh to add at least one new unshipped candidate id
