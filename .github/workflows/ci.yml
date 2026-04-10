@@ -16,15 +16,25 @@ jobs:
 
       - name: Setup pnpm
         uses: pnpm/action-setup@v4
+        with:
+          version: 10
 
       - name: Setup Node
         uses: actions/setup-node@v4
         with:
           node-version: 22
           cache: pnpm
+          cache-dependency-path: pnpm-lock.yaml
 
       - name: Install dependencies
         run: pnpm install --frozen-lockfile
+
+      - name: Verify web framework resolution
+        run: |
+          pnpm --filter web exec node -p "require.resolve('next/package.json')"
+          pnpm --filter web exec node -p "require.resolve('react/package.json')"
+          pnpm --filter web exec node -p "require.resolve('react-dom/package.json')"
+          pnpm --filter web list next react react-dom --depth 0
 
       - name: Repo doctor
         run: pnpm repo:doctor
