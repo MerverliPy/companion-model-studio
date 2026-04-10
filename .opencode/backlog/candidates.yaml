@@ -213,3 +213,22 @@ candidates:
       - progress reads persisted lesson history from the server-backed repository
       - result ordering and recent-achievement derivation remain stable after reload
       - localStorage is no longer the canonical lesson result source
+
+  - id: server-backed-chat-session
+    module: web
+    priority: 7
+    drivers:
+      - move active chat session storage out of browser localStorage
+      - make local chat reload-safe from sqlite while staying single-user and local-first
+    files:
+      - apps/web/app/api/chat-sessions/route.ts
+      - apps/web/lib/chat/session-store.ts
+      - apps/web/lib/chat/chat-session-repository.ts
+      - apps/web/app/components/chat-workbench.tsx
+      - apps/web/app/chat/page.tsx
+    validation: run pnpm --filter web validate
+    acceptance:
+      - active chat session is loaded from sqlite on page open
+      - sending a message persists both user and assistant messages to sqlite
+      - full page reload preserves session history without relying on localStorage
+      - localStorage is no longer the canonical chat session source

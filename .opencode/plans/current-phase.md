@@ -1,75 +1,107 @@
 # Current Phase
 
-Selected candidate id: none-available
+Selected candidate id: server-backed-chat-session
 
-Status: blocked
+Status: pending
 
 ## Goal
-Select the next bounded unshipped phase once a new eligible candidate exists in `.opencode/backlog/candidates.yaml`.
+Cut active chat session persistence over from browser localStorage to the shipped SQLite/Prisma foundation so local chat reloads against the same server-backed session history and no longer depends on browser-canonical storage.
 
 ## Why this phase is next
-- `server-backed-lesson-results` is now complete and listed in the canonical shipped ledger.
-- The shipper recommendation `runtime-model-selection-e2e` must be refused because it is already listed in `.opencode/backlog/completed.yaml`.
-- No remaining candidate in `.opencode/backlog/candidates.yaml` is eligible for selection after applying the canonical completion ledger.
-- Workflow cannot safely advance until a new unshipped bounded candidate is added.
+- There is explicit user scope to continue the audited follow-up chain after the shipped server-backed lesson-results phase.
+- The database layer exists and the earlier persistence cutovers for companion drafts and lesson results are complete, so the remaining bounded persistence surface is the active chat session.
+- This is the smallest safe next step because it migrates only the chat session storage path without reopening companion, lesson, or broader runtime work.
+- Completing this phase finishes the planned persistence cutover sequence before the later behavior-test and docs-alignment follow-ups.
 
 ## Primary files
-- `.opencode/backlog/candidates.yaml`
-- `.opencode/backlog/completed.yaml`
-- `.opencode/plans/current-phase.md`
+- `apps/web/app/api/chat-sessions/route.ts`
+- `apps/web/lib/chat/session-store.ts`
+- `apps/web/lib/chat/chat-session-repository.ts`
+- `apps/web/app/components/chat-workbench.tsx`
+- `apps/web/app/chat/page.tsx`
 
 ## Expected max files changed
-1
+5
 
 ## Forbidden paths
-- `apps/**`
+- `.opencode/backlog/**`
+- `.opencode/agents/**`
+- `.opencode/commands/**`
 - `.github/**`
 - `docs/**`
 - `README.md`
+- `apps/web/prisma/**`
+- `apps/web/app/create/**`
+- `apps/web/app/lessons/**`
+- `apps/web/app/progress/**`
+- `apps/web/app/api/companion-draft/**`
+- `apps/web/app/api/lesson-results/**`
+- `apps/web/app/api/chat/route.ts`
 - `node_modules/**`
+- `apps/web/.next/**`
 
 ## Risk
-The main risk is accidentally re-selecting a shipped candidate because stale backlog entries remain in `.opencode/backlog/candidates.yaml`.
+The main risk is partially migrating chat-session reads and writes so page load, optimistic message updates, and persisted history disagree about which session is canonical.
+
+A second risk is scope drift into broader chat runtime changes or test/CI work before the bounded session-storage cutover is complete.
 
 ## Rollback note
-If a new eligible candidate is added, replace this blocked plan with a fresh bounded phase plan and keep the completion ledger unchanged.
+If this phase becomes unstable, revert the chat-session API and repository cutover changes and restore the prior localStorage-backed session flow, keeping all rollback limited to the listed files.
 
 ## In scope
-- Confirm the just-shipped phase is recorded in the canonical completion ledger.
-- Refuse any recommended next candidate already present in `.opencode/backlog/completed.yaml`.
-- Block phase selection until a new eligible candidate exists.
+- Add a server-backed chat-sessions route.
+- Add a small repository layer for chat-session reads and writes using Prisma.
+- Update the chat workbench to load the active session from the server-backed path.
+- Update the chat workbench to persist user and assistant messages through the server-backed path.
+- Remove browser localStorage as the canonical chat-session source.
 
 ## Out of scope
-- Implementing any new product change.
-- Editing shipped candidate entries in the canonical completion ledger.
-- Re-selecting any candidate already marked complete.
-- Inventing a new candidate outside the backlog.
+- Companion draft persistence changes.
+- Lesson-result persistence changes.
+- New runtime model-selection changes.
+- Broader chat API redesign beyond what is required for session persistence.
+- Test-framework introduction or CI workflow changes.
+- Docs, backlog, or workflow artifact edits.
 
 ## Tasks
-- Verify the current phase candidate id is present in `.opencode/backlog/completed.yaml`.
-- Check all candidate ids in `.opencode/backlog/candidates.yaml` against the canonical completion ledger.
-- Refuse any already-complete candidate ids.
-- Leave the workflow blocked until a new unshipped bounded candidate is available.
+- Review the existing chat-session load/save flow and identify all localStorage dependencies.
+- Add `apps/web/lib/chat/chat-session-repository.ts` backed by Prisma.
+- Add `apps/web/app/api/chat-sessions/route.ts` for bounded chat-session reads and writes.
+- Update `apps/web/lib/chat/session-store.ts` so it no longer treats localStorage as canonical storage.
+- Update `apps/web/app/components/chat-workbench.tsx` to load and persist the active session through the server-backed path.
+- Update `apps/web/app/chat/page.tsx` only as needed to support the bounded session cutover.
+- Keep all changes bounded to the listed files.
 
 ## Validation command
-`none until a new eligible candidate exists`
+`pnpm --filter web validate`
 
 ## Validation
-- Blocked: there is no eligible next candidate to validate or implement.
+- PENDING: validator must run `pnpm --filter web validate`.
+- Expected validator checks:
+  - typecheck passes
+  - Next.js build passes
+  - web smoke passes
+- Validator should also confirm:
+  - opening chat resolves the active session from the server-backed persistence path
+  - sending a message persists both user and assistant messages to the same stored session
+  - full page reload preserves chat history without relying on localStorage
+  - no companion-draft or lesson-result migration work was silently included
 
 ## Repair targets
-- Add at least one new bounded unshipped candidate to `.opencode/backlog/candidates.yaml`.
+- none
 
 ## Acceptance criteria
-- `server-backed-lesson-results` remains listed in `.opencode/backlog/completed.yaml`.
-- No candidate already listed in `.opencode/backlog/completed.yaml` is selected again.
-- The plan remains blocked until a new unshipped candidate is available.
+- Active chat session is loaded from SQLite on page open.
+- Sending a message persists both user and assistant messages to SQLite.
+- Full page reload preserves session history without relying on localStorage.
+- localStorage is no longer the canonical chat-session source.
+- `pnpm --filter web validate` passes.
 
 ## Completion summary
 - files changed:
-  - `.opencode/plans/current-phase.md`
+  - none yet
 - implementation summary:
-  - replaced the shipped phase plan with a blocked placeholder because no eligible next candidate remains in the backlog
-  - refused the shipper's recommended next candidate because `runtime-model-selection-e2e` is already complete in the canonical ledger
+  - not started
 - known risks:
-  - workflow remains blocked until backlog maintenance adds a new eligible candidate
+  - stale browser-local session data may still exist and must not silently override the server-backed session
+  - optimistic chat updates must remain consistent with the persisted session after reload
