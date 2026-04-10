@@ -13,3 +13,4 @@ shipped_ids:
   - chat-request-schema-hardening
   - sqlite-prisma-foundation
   - server-backed-lesson-results
+  - server-backed-chat-session

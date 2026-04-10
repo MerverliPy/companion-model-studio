@@ -49,13 +49,44 @@ export function ChatWorkbench() {
 
   useEffect(() => {
     const savedCompanion = loadCompanionDraft();
-    const savedSession = loadChatSession();
-    const nextSession =
-      savedSession || createChatSession([createWelcomeMessage(savedCompanion)]);
-
     setCompanion(savedCompanion);
-    setSession(nextSession);
-    saveChatSession(nextSession);
+
+    let isActive = true;
+
+    async function initializeSession() {
+      try {
+        const savedSession = await loadChatSession();
+        const nextSession =
+          savedSession ||
+          (await saveChatSession(createChatSession([createWelcomeMessage(savedCompanion)])));
+
+        if (!isActive) {
+          return;
+        }
+
+        setSession(nextSession);
+        setComposerState('idle');
+        setComposerError('');
+      } catch (error) {
+        if (!isActive) {
+          return;
+        }
+
+        setSession(createChatSession([createWelcomeMessage(savedCompanion)]));
+        setComposerState('error');
+        setComposerError(
+          error instanceof Error && error.message
+            ? error.message
+            : 'Unable to load the saved chat session right now.',
+        );
+      }
+    }
+
+    initializeSession();
+
+    return () => {
+      isActive = false;
+    };
   }, []);
 
   const companionSummary = useMemo(() => {
@@ -97,6 +128,7 @@ export function ChatWorkbench() {
     }
 
     const userMessage = createUserMessage(content);
+    const previousSession = session;
     const optimisticSession = {
       ...session,
       messages: [...session.messages, userMessage],
@@ -109,6 +141,10 @@ export function ChatWorkbench() {
     setComposerError('');
 
     try {
+      const persistedOptimisticSession = await saveChatSession(optimisticSession);
+
+      setSession(persistedOptimisticSession);
+
       const response = await fetch('/api/chat', {
         method: 'POST',
         headers: {
@@ -116,7 +152,7 @@ export function ChatWorkbench() {
         },
         body: JSON.stringify({
           companion,
-          messages: optimisticSession.messages,
+          messages: persistedOptimisticSession.messages,
           selectedModel: selectedModelState.selectedModel,
         }),
       });
@@ -134,13 +170,13 @@ export function ChatWorkbench() {
 
       const result = (await response.json()) as { reply: string };
       const nextSession = {
-        ...optimisticSession,
-        messages: [...optimisticSession.messages, createAssistantMessage(result.reply)],
+        ...persistedOptimisticSession,
+        messages: [...persistedOptimisticSession.messages, createAssistantMessage(result.reply)],
         updatedAt: new Date().toISOString(),
       };
+      const persistedNextSession = await saveChatSession(nextSession);
 
-      setSession(nextSession);
-      saveChatSession(nextSession);
+      setSession(persistedNextSession);
       setComposerState('idle');
       setComposerError('');
     } catch (error) {
@@ -149,8 +185,8 @@ export function ChatWorkbench() {
           ? error.message
           : 'I could not send that message just now. Please try again.';
 
-      setSession(session);
-      saveChatSession(session);
+      setSession(previousSession);
+      void saveChatSession(previousSession).catch(() => undefined);
       setDraftMessage(content);
       setComposerState('error');
       setComposerError(nextComposerError);

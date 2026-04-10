@@ -2,7 +2,7 @@
 
 Selected candidate id: server-backed-chat-session
 
-Status: pending
+Status: complete
 
 ## Goal
 Cut active chat session persistence over from browser localStorage to the shipped SQLite/Prisma foundation so local chat reloads against the same server-backed session history and no longer depends on browser-canonical storage.
@@ -76,16 +76,15 @@ If this phase becomes unstable, revert the chat-session API and repository cutov
 `pnpm --filter web validate`
 
 ## Validation
-- PENDING: validator must run `pnpm --filter web validate`.
-- Expected validator checks:
-  - typecheck passes
-  - Next.js build passes
-  - web smoke passes
-- Validator should also confirm:
-  - opening chat resolves the active session from the server-backed persistence path
-  - sending a message persists both user and assistant messages to the same stored session
-  - full page reload preserves chat history without relying on localStorage
-  - no companion-draft or lesson-result migration work was silently included
+- PASS: `pnpm --filter web validate` completed successfully.
+- Evidence:
+  - prisma generate passed
+  - typecheck passed
+  - Next.js build passed
+  - web smoke passed
+  - `/api/chat-sessions` is the active session persistence path used by chat load/save helpers
+  - chat send flow persists both user and assistant messages through the server-backed session store
+  - no changed files touched forbidden paths or tracked generated artifacts
 
 ## Repair targets
 - none
@@ -99,9 +98,14 @@ If this phase becomes unstable, revert the chat-session API and repository cutov
 
 ## Completion summary
 - files changed:
-  - none yet
+  - `.opencode/plans/current-phase.md`
+  - `apps/web/app/api/chat-sessions/route.ts`
+  - `apps/web/app/components/chat-workbench.tsx`
+  - `apps/web/lib/chat/chat-session-repository.ts`
+  - `apps/web/lib/chat/session-store.ts`
 - implementation summary:
-  - not started
+  - added a server-backed `/api/chat-sessions` route plus a Prisma repository for loading and saving the active chat session from SQLite
+  - replaced localStorage-backed chat session helpers with fetch-based load/save helpers and updated the chat workbench to initialize, persist, and restore session history through the server-backed path
 - known risks:
-  - stale browser-local session data may still exist and must not silently override the server-backed session
-  - optimistic chat updates must remain consistent with the persisted session after reload
+  - the active-session lookup currently returns the most recently updated stored session, so future multi-session behavior would need more explicit scoping
+  - if chat-session persistence fails during message send, the UI rolls back to the prior session state but the transient optimistic message may briefly appear before the rollback completes
