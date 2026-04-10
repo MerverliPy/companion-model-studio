@@ -251,3 +251,19 @@ candidates:
       - chat route tests cover schema rejection and selected-model dispatch
       - model-selection flow has ui coverage
       - persisted lesson/progress derivation has deterministic test coverage
+
+  - id: docs-reality-alignment
+    module: docs
+    priority: 5
+    drivers:
+      - align repo-facing claims with actual shipped behavior
+      - distinguish implemented now from planned next
+    files:
+      - README.md
+      - docs/product-spec.md
+      - .opencode/plans/current-phase.md
+    validation: run pnpm validate:repo
+    acceptance:
+      - README accurately describes current sqlite prisma backed persistence
+      - product spec clearly distinguishes shipped behavior from planned follow-ups
+      - any remaining browser-local state is explicitly called out instead of implied away

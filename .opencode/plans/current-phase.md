@@ -1,73 +1,91 @@
 # Current Phase
 
-Selected candidate id: none-eligible
+Selected candidate id: docs-reality-alignment
 
-Status: blocked
+Status: pending
 
 ## Goal
-Record that next-phase selection is blocked because every candidate currently listed in `.opencode/backlog/candidates.yaml` is already shipped in `.opencode/backlog/completed.yaml`.
+Reconcile the public repo-facing documentation with the now-shipped implementation so README and product-spec describe the actual local-first app, SQLite/Prisma persistence, and current bounded feature set without overstating or understating shipped behavior.
 
 ## Why this phase is next
-- The user explicitly asked for the next phase.
-- The canonical completion ledger marks every listed candidate as complete, so none can be re-selected.
-- The smallest safe action is to block selection rather than invent uncataloged work or re-open shipped work.
-- A backlog refresh is required before builder can receive another bounded implementation phase.
+- There is explicit user scope to complete the audited follow-up chain after the shipped behavior-tests-and-ci phase.
+- The implementation, persistence cutovers, and CI/test improvements are now in place, so this is the correct time to align docs with reality instead of documenting work that was still in flight.
+- This is the smallest safe final phase because it is limited to repo-facing documentation and does not reopen product, persistence, runtime, or CI implementation work.
+- Completing this phase closes the audit follow-up sequence by making the repo’s claims match the shipped system.
 
 ## Primary files
-- `.opencode/backlog/candidates.yaml`
-- `.opencode/backlog/completed.yaml`
+- `README.md`
+- `docs/product-spec.md`
 - `.opencode/plans/current-phase.md`
 
 ## Expected max files changed
-1
+3
 
 ## Forbidden paths
-- `apps/**`
-- `packages/**`
+- `.opencode/backlog/**`
+- `.opencode/agents/**`
+- `.opencode/commands/**`
 - `.github/**`
-- `docs/**`
-- `README.md`
-- `AGENTS.md`
-- `.opencode/backlog/candidates.yaml`
-- `.opencode/backlog/completed.yaml`
+- `apps/web/**`
+- `apps/web/prisma/**`
+- `scripts/**`
+- `node_modules/**`
+- `apps/web/.next/**`
 
 ## Risk
-The main risk is mistakenly re-selecting shipped work because `candidates.yaml` is stale relative to the canonical completion ledger.
+The main risk is reintroducing aspirational product language that no longer reflects the shipped implementation, which would reduce repo trustworthiness instead of improving it.
+
+A second risk is scope drift into non-documentation changes under the pretext of making docs accurate.
 
 ## Rollback note
-Rollback is limited to restoring the prior `.opencode/plans/current-phase.md` if backlog maintenance happens separately.
+If this phase becomes unstable, revert the documentation edits and restore the prior docs state, keeping all rollback limited to the listed files.
 
 ## In scope
-- Compare current candidate ids against the canonical completion ledger.
-- Record blocked status for phase selection.
-- State the exact prerequisite for resuming implementation planning.
+- Update README to describe the shipped local-first app accurately.
+- Update the product spec to distinguish shipped behavior from future or optional follow-ups.
+- Reflect the current SQLite/Prisma-backed persistence model accurately.
+- Call out any remaining intentional local-only or single-user constraints where helpful.
 
 ## Out of scope
-- Product implementation.
-- Repair work.
-- Editing backlog candidates or the completion ledger.
-- Creating new uncataloged candidate ids.
+- Product code changes.
+- Persistence schema or route changes.
+- CI or test changes.
+- Backlog, completed ledger, or workflow artifact edits beyond the active current phase file.
 
 ## Tasks
-- Confirm that no candidate id in `.opencode/backlog/candidates.yaml` remains unshipped.
-- Mark the current phase as blocked.
-- Require backlog refresh before the next implementation phase is selected.
+- Review the current README for claims that were true only before the shipped persistence and CI follow-up work completed.
+- Update README to describe the shipped create, lessons, progress, chat, and local runtime behavior accurately.
+- Review `docs/product-spec.md` for wording that blurs shipped behavior and future intent.
+- Update the product spec to separate current shipped state from later optional or planned directions.
+- Keep all changes bounded to the listed files.
 
 ## Validation command
-`Not applicable — backlog refresh required before an implementation validation command can be assigned.`
+`pnpm validate:repo`
 
 ## Validation
-- PASS: no candidate from `.opencode/backlog/candidates.yaml` was re-selected if it already appears in `.opencode/backlog/completed.yaml`.
-- PASS: `.opencode/plans/current-phase.md` records `Status: blocked` and explains why selection cannot continue.
-- PASS: no files outside `.opencode/plans/current-phase.md` were changed.
+- PENDING: validator must run `pnpm validate:repo`.
+- Expected validator checks:
+  - repo doctor passes
+  - web validate passes
+- Validator should also confirm:
+  - repo-facing claims match the shipped implementation
+  - docs do not imply cloud dependencies or unfinished architecture as if already shipped
+  - no code or workflow-scope changes were silently included
 
 ## Repair targets
 - none
 
 ## Acceptance criteria
-- No completed candidate id is re-selected.
-- The current phase clearly states that selection is blocked because no eligible unshipped candidates remain.
-- The required next action is backlog refresh, not implementation.
+- README accurately describes current SQLite/Prisma-backed persistence.
+- Product spec clearly distinguishes shipped behavior from planned or optional follow-ups.
+- Any remaining local-only or single-user constraints are stated accurately where relevant.
+- `pnpm validate:repo` passes.
 
 ## Completion summary
-- blocked pending backlog refresh to add at least one new unshipped candidate id
+- files changed:
+  - none yet
+- implementation summary:
+  - not started
+- known risks:
+  - docs must stay descriptive of shipped behavior rather than drifting back into aspirational wording
+  - scope must remain documentation-only
