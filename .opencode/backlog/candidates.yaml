@@ -232,3 +232,22 @@ candidates:
       - sending a message persists both user and assistant messages to sqlite
       - full page reload preserves session history without relying on localStorage
       - localStorage is no longer the canonical chat session source
+
+  - id: behavior-tests-and-ci
+    module: web
+    priority: 6
+    drivers:
+      - replace file-existence smoke confidence with behavior confidence
+      - cover the highest-risk paths introduced by the shipped follow-up fixes
+    files:
+      - apps/web/package.json
+      - apps/web/vitest.config.ts
+      - apps/web/app/api/chat/route.test.ts
+      - apps/web/app/components/chat-workbench.test.tsx
+      - apps/web/lib/studio-behavior.test.ts
+    validation: run pnpm --filter web validate
+    acceptance:
+      - web validate runs tests before build and smoke
+      - chat route tests cover schema rejection and selected-model dispatch
+      - model-selection flow has ui coverage
+      - persisted lesson/progress derivation has deterministic test coverage

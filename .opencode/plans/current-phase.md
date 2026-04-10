@@ -1,24 +1,24 @@
 # Current Phase
 
-Selected candidate id: server-backed-chat-session
+Selected candidate id: behavior-tests-and-ci
 
-Status: complete
+Status: pending
 
 ## Goal
-Cut active chat session persistence over from browser localStorage to the shipped SQLite/Prisma foundation so local chat reloads against the same server-backed session history and no longer depends on browser-canonical storage.
+Add bounded behavior-level test coverage for the highest-risk shipped flows and wire those tests into the stable `apps/web` validation path so confidence no longer depends only on typecheck, build, and file-existence smoke checks.
 
 ## Why this phase is next
-- There is explicit user scope to continue the audited follow-up chain after the shipped server-backed lesson-results phase.
-- The database layer exists and the earlier persistence cutovers for companion drafts and lesson results are complete, so the remaining bounded persistence surface is the active chat session.
-- This is the smallest safe next step because it migrates only the chat session storage path without reopening companion, lesson, or broader runtime work.
-- Completing this phase finishes the planned persistence cutover sequence before the later behavior-test and docs-alignment follow-ups.
+- There is explicit user scope to continue the audited follow-up chain after the shipped persistence and CI-fix work.
+- The app now validates cleanly, so the next smallest safe step is to add real behavior coverage for the highest-risk shipped surfaces rather than continuing with ad hoc manual verification.
+- This phase stays web-scoped and improves confidence in already-shipped behavior without reopening persistence schema work or broader docs alignment.
+- Completing this phase creates a stronger base for the final follow-up phase: `docs-reality-alignment`.
 
 ## Primary files
-- `apps/web/app/api/chat-sessions/route.ts`
-- `apps/web/lib/chat/session-store.ts`
-- `apps/web/lib/chat/chat-session-repository.ts`
-- `apps/web/app/components/chat-workbench.tsx`
-- `apps/web/app/chat/page.tsx`
+- `apps/web/package.json`
+- `apps/web/vitest.config.ts`
+- `apps/web/app/api/chat/route.test.ts`
+- `apps/web/app/components/chat-workbench.test.tsx`
+- `apps/web/lib/studio-behavior.test.ts`
 
 ## Expected max files changed
 5
@@ -34,78 +34,70 @@ Cut active chat session persistence over from browser localStorage to the shippe
 - `apps/web/app/create/**`
 - `apps/web/app/lessons/**`
 - `apps/web/app/progress/**`
-- `apps/web/app/api/companion-draft/**`
-- `apps/web/app/api/lesson-results/**`
-- `apps/web/app/api/chat/route.ts`
+- `apps/web/app/chat/page.tsx`
 - `node_modules/**`
 - `apps/web/.next/**`
 
 ## Risk
-The main risk is partially migrating chat-session reads and writes so page load, optimistic message updates, and persisted history disagree about which session is canonical.
+The main risk is introducing an oversized test harness or broad refactors instead of adding only the bounded test coverage needed for the highest-risk shipped behaviors.
 
-A second risk is scope drift into broader chat runtime changes or test/CI work before the bounded session-storage cutover is complete.
+A second risk is weakening the stable validation path by adding flaky or environment-sensitive tests that do not fit the local-first web app surface.
 
 ## Rollback note
-If this phase becomes unstable, revert the chat-session API and repository cutover changes and restore the prior localStorage-backed session flow, keeping all rollback limited to the listed files.
+If this phase becomes unstable, revert the test harness and validation-script changes and restore the prior web validation path, keeping all rollback limited to the listed files.
 
 ## In scope
-- Add a server-backed chat-sessions route.
-- Add a small repository layer for chat-session reads and writes using Prisma.
-- Update the chat workbench to load the active session from the server-backed path.
-- Update the chat workbench to persist user and assistant messages through the server-backed path.
-- Remove browser localStorage as the canonical chat-session source.
+- Add a small bounded test setup for `apps/web`.
+- Add behavior tests for the chat request boundary.
+- Add UI coverage for the selected-model chat flow.
+- Add deterministic tests for persisted lesson/progress derivation behavior.
+- Wire the tests into `pnpm --filter web validate`.
 
 ## Out of scope
-- Companion draft persistence changes.
-- Lesson-result persistence changes.
-- New runtime model-selection changes.
-- Broader chat API redesign beyond what is required for session persistence.
-- Test-framework introduction or CI workflow changes.
+- New product features.
+- Persistence schema changes.
+- New API routes beyond what tests need to exercise current behavior.
+- Broad CI workflow redesign.
 - Docs, backlog, or workflow artifact edits.
 
 ## Tasks
-- Review the existing chat-session load/save flow and identify all localStorage dependencies.
-- Add `apps/web/lib/chat/chat-session-repository.ts` backed by Prisma.
-- Add `apps/web/app/api/chat-sessions/route.ts` for bounded chat-session reads and writes.
-- Update `apps/web/lib/chat/session-store.ts` so it no longer treats localStorage as canonical storage.
-- Update `apps/web/app/components/chat-workbench.tsx` to load and persist the active session through the server-backed path.
-- Update `apps/web/app/chat/page.tsx` only as needed to support the bounded session cutover.
+- Add a minimal test runner configuration for `apps/web`.
+- Update `apps/web/package.json` so the stable `validate` script runs tests before build and smoke.
+- Add a route test for `/api/chat` covering schema rejection and selected-model dispatch behavior.
+- Add a UI test for the chat workbench covering the selected-model flow.
+- Add a deterministic behavior test covering persisted lesson/progress derivation.
 - Keep all changes bounded to the listed files.
 
 ## Validation command
 `pnpm --filter web validate`
 
 ## Validation
-- PASS: `pnpm --filter web validate` completed successfully.
-- Evidence:
-  - prisma generate passed
-  - typecheck passed
-  - Next.js build passed
-  - web smoke passed
-  - `/api/chat-sessions` is the active session persistence path used by chat load/save helpers
-  - chat send flow persists both user and assistant messages through the server-backed session store
-  - no changed files touched forbidden paths or tracked generated artifacts
+- PENDING: validator must run `pnpm --filter web validate`.
+- Expected validator checks:
+  - tests pass
+  - typecheck passes
+  - Next.js build passes
+  - web smoke passes
+- Validator should also confirm:
+  - tests are behavior-focused rather than file-existence checks
+  - chat route coverage includes invalid-request rejection and selected-model handling
+  - progress-related coverage is deterministic and not dependent on ambient local state
 
 ## Repair targets
 - none
 
 ## Acceptance criteria
-- Active chat session is loaded from SQLite on page open.
-- Sending a message persists both user and assistant messages to SQLite.
-- Full page reload preserves session history without relying on localStorage.
-- localStorage is no longer the canonical chat-session source.
+- `pnpm --filter web validate` runs tests before build and smoke.
+- Chat route tests cover schema rejection and selected-model dispatch.
+- Model-selection flow has UI coverage.
+- Persisted lesson/progress derivation has deterministic test coverage.
 - `pnpm --filter web validate` passes.
 
 ## Completion summary
 - files changed:
-  - `.opencode/plans/current-phase.md`
-  - `apps/web/app/api/chat-sessions/route.ts`
-  - `apps/web/app/components/chat-workbench.tsx`
-  - `apps/web/lib/chat/chat-session-repository.ts`
-  - `apps/web/lib/chat/session-store.ts`
+  - none yet
 - implementation summary:
-  - added a server-backed `/api/chat-sessions` route plus a Prisma repository for loading and saving the active chat session from SQLite
-  - replaced localStorage-backed chat session helpers with fetch-based load/save helpers and updated the chat workbench to initialize, persist, and restore session history through the server-backed path
+  - not started
 - known risks:
-  - the active-session lookup currently returns the most recently updated stored session, so future multi-session behavior would need more explicit scoping
-  - if chat-session persistence fails during message send, the UI rolls back to the prior session state but the transient optimistic message may briefly appear before the rollback completes
+  - test setup must stay small and deterministic
+  - validation should not become flaky or dependent on external runtime state
