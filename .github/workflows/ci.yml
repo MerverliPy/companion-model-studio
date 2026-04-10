@@ -46,14 +46,8 @@ jobs:
       - name: Repo doctor
         run: corepack pnpm repo:doctor
 
-      - name: Web typecheck
-        run: corepack pnpm --filter web typecheck
-
-      - name: Web build
-        run: corepack pnpm --filter web build
-
-      - name: Web smoke
-        run: corepack pnpm --filter web smoke
+      - name: Web validate
+        run: corepack pnpm --filter web validate
 
       - name: Write bundled CI logs
         if: always()
